@@ -1,0 +1,43 @@
+v1.0.30
+NEW aggiunto salvataggio delle opzioni e del msgset nel file di progetto
+
+V1.0.23
+NEW se non ci sono parametri usa una macro diversa (non usa le doppie parentesi)
+NEW il nome del progetto è evidenziato sulla barra del titolo
+FIX è possibile inserire una funzione all'interno di un commento
+FIX il controllo dei set quando era vuoto creava problemi
+
+v1.0.19
+FIX Tra una pressione e la successiva del pulsante process non veniva azzerato
+    lo sato
+NEW Pulsante Clear esplicito x cancellare un progetto
+
+v1.0.17
+NEW Inserite le opzioni per includere o meno il CRC e le doppie parentesi
+
+V1.0.16
+NEW Inserito un crc all'interno dei messaggi che viene inviato insieme al codice.
+
+v1.0.15
+FIX Il caricamento dei progetti non funzionava correttamente
+
+v1.0.14
+NEW Gestione dei messaggi duplicati: se vi sono due entry uguali (anche in due
+    file diversi) viene usato lo stesso codice
+
+v0.9.10
+CHG cambiato il nome della macro, quella vecchia creava problemi
+NEW inserita la possibilità di avere un file di progetto
+FIX la form era sizable
+FIX se il nome della macro ha "#define" o "#undef" davanti non viene cacellato
+
+v0.9.5
+FIX Tolto codeguard ed aggiunto eurekaLog
+CHG parSpec è tutta minuscola, il formato viene codificato nella stringa
+CHG cambiata l'icona
+
+v0.9.3
+FIX Aggiunta doppia parentesi alla macro
+
+v0.9.2
+NEW First release
