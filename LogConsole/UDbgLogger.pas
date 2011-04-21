@@ -112,17 +112,18 @@ end;
 
 procedure TDbgLoggerEngine.enableEngine(AEnable: Boolean);
 begin
-  // must be redefinited form derived classes
+  // can be redefinited form derived classes
 end;
 
 procedure TDbgLoggerEngine.Init;
 begin
-  // must be redefinited form derived classes
+  FInitialized := true;
+  // can be redefinited form derived classes
 end;
 
 procedure TDbgLoggerEngine.Reset;
 begin
-  // must be redefinited form derived classes
+  // can be redefinited form derived classes
 end;
 
 procedure TDbgLoggerEngine.LogException(AString: string = '');

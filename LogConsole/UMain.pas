@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,
+  Dialogs, StdCtrls, ExtCtrls,
   UDbgLogger,
   UNICanLink;
 
@@ -14,9 +14,11 @@ type
     eName: TEdit;
     cbOpen: TCheckBox;
     Label1: TLabel;
+    Timer1: TTimer;
     procedure cbOpenClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
   private
     { Private declarations }
     FLogger: TDbgLogger;
@@ -31,6 +33,9 @@ var
 implementation
 
 {$R *.dfm}
+
+uses
+  UCanMsg;
 
 procedure TfmMain.cbOpenClick(Sender: TObject);
 begin
@@ -58,6 +63,18 @@ begin
   FLogger.Enable := true;
   FLink := TNICanLink.Create;
   FLogger.LogMessage('Link inizialized');
+end;
+
+procedure TfmMain.Timer1Timer(Sender: TObject);
+var
+  LMsg: TCanMsg;
+begin
+  Timer1.Enabled := False;
+
+  while FLink.Active and FLink.Read(LMsg) do
+    memo1.Lines.Add(LMsg.ToEgoString);
+
+  Timer1.Enabled := true;
 end;
 
 

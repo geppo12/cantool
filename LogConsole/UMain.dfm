@@ -39,7 +39,7 @@ object fmMain: TfmMain
   end
   object eName: TEdit
     Left = 64
-    Top = 440
+    Top = 438
     Width = 81
     Height = 21
     Anchors = [akLeft, akBottom]
@@ -54,5 +54,11 @@ object fmMain: TfmMain
     Caption = 'Open'
     TabOrder = 2
     OnClick = cbOpenClick
+  end
+  object Timer1: TTimer
+    Interval = 2000
+    OnTimer = Timer1Timer
+    Left = 40
+    Top = 40
   end
 end

@@ -28,7 +28,7 @@ type
 { This two-part declaration is required for compilers which do not
   provide support for native 64-bit integers.  }
 
-  NCTYPE_UINT64 = record
+  NCTYPE_UINT64 = packed record
    LowPart: NCTYPE_UINT32;
    HighPart: NCTYPE_UINT32;
   end;
@@ -42,7 +42,7 @@ type
   of characters with zero (the NULL character) used to indicate
   end-of-string.  This is known as an ASCIIZ string. }
 
-  // TODO 1 -cFIXME : valutare se mettere un ifdef per i compilatori che supportano solo pchar
+  // TODO 2 -cFIXME : valutare se mettere un ifdef per i compilatori che supportano solo pchar
   NCTYPE_STRING = PAnsiChar;
 
 
@@ -116,7 +116,7 @@ type
   NCTYPE_CAN_ARBID = NCTYPE_UINT32;
 
 { Type for ncWrite of CAN Network Interface Object }
-  NCTYPE_CAN_FRAME = record
+  NCTYPE_CAN_FRAME = packed record
    ArbitrationId:  NCTYPE_CAN_ARBID;
    IsRemote:       NCTYPE_BOOL;
    DataLength:     NCTYPE_UINT8;
@@ -124,7 +124,7 @@ type
   end;
 
 { Type for ncRead of CAN Network Interface Object }
-  NCTYPE_CAN_FRAME_TIMED = record
+  NCTYPE_CAN_FRAME_TIMED = packed record
    Timestamp:      NCTYPE_ABS_TIME;
    ArbitrationId:  NCTYPE_CAN_ARBID;
    IsRemote:       NCTYPE_BOOL;
@@ -136,7 +136,7 @@ type
 { Type for ncRead of CAN Network Interface Object (using FrameType instead of IsRemote).
   Type for ncWrite of CAN Network Interface Object when timed transmission is enabled. }
 
-  NCTYPE_CAN_STRUCT = record
+  NCTYPE_CAN_STRUCT = packed record
    Timestamp:      NCTYPE_ABS_TIME;
    ArbitrationId:  NCTYPE_CAN_ARBID;
    FrameType:      NCTYPE_UINT8;
@@ -145,12 +145,12 @@ type
   end;
 
 { Type for ncWrite of CAN Object }
-  NCTYPE_CAN_DATA = record
+  NCTYPE_CAN_DATA = packed record
     Data:          array [0..7] of NCTYPE_UINT8;
   end;
 
 { Type for ncRead of CAN Object }
-  NCTYPE_CAN_DATA_TIMED = record
+  NCTYPE_CAN_DATA_TIMED = packed record
    Timestamp: NCTYPE_ABS_TIME;
    Data: array [0..7] of NCTYPE_UINT8;
   end;

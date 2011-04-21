@@ -3,6 +3,10 @@
 
 unit UNICanLink;
 
+{ here we use untyped pointer. The operator @ return an untyped porinter that is
+  casted as required }
+{$T-}
+
 interface
 
 uses
@@ -17,6 +21,7 @@ resourcestring
 
 const
   kMaxAttrBuffer = 16;
+  kNumObject     = 16;
 type
   ENICanException = class(Exception)
     constructor Create(AMsg: string);
@@ -43,6 +48,14 @@ type
     property Count: Integer read FIndex; // index is used as counter of parameter
   end;
 
+  TNICanBaudrate = (
+    canBaud10K,
+    canBaud100K,
+    canBaud125K,
+    canBaud250K,
+    canBaud500K,
+    canBaud1000K
+  );
 
   TNICanLink = class
     private
@@ -50,26 +63,37 @@ type
     FName: string;
     FActive: Boolean;
     FAttrArray: TNIAttributeArray;
-    FCanNetworkObj: NCTYPE_OBJH;
-    FMsgIndex: Integer;
-    FMsgCount: Integer;
+    FErrorStringBuf: array [0..1023] of AnsiChar;
+    FNICanBuffer: array [0..kNumObject-1] of NCTYPE_CAN_STRUCT;
+    FBaudRate: TNICanBaudrate;
 
+    FReadMsgQueue: TCanMsgQueue;
+    FWriteMsgQueue: TCanMsgQueue;
+    FCanNetworkObj: NCTYPE_OBJH;
+    FLastStatus: Integer;
+
+    function int64NI2D(AInt64: NCTYPE_UINT64): Int64;
+    function baudrateD2NI(ABaudRate: TNICanBaudrate): NCTYPE_UINT32;
     function configure: NCTYPE_STATUS;
-    //procedure readFromCan;
-    //procedure readMsgFromBuffer(var AMsg: TCanMsg);
+    function readFromCan: NCTYPE_STATUS;
     function statusToString(AStatus: NCTYPE_STATUS): string;
     procedure checkCanerror;
     procedure setName(AName: string);
+    procedure setBaudrate(ABaudRate: TNICanBaudrate);
     public
     constructor Create;
     destructor Destroy; override;
     procedure Open;
     procedure Close;
-    //function Read(var AMsg: TCanMsg): Boolean;
-    //procedure Write(AMsg: TCanMsg);
+    function Read(var AMsg: TCanMsg): Boolean;
+    function Write(AMsg: TCanMsg): Boolean;
+    function WriteQueued(AMsg: TCanMsg): Boolean;
+    function FlushWriteQueue: Boolean;
 
     property Name: string read FName write setName;
     property Active: Boolean read FActive;
+    property BaudRate: TNICanBaudrate read FBaudRate write setBaudrate;
+    property LastStatus: Integer read FLastStatus;
   end;
 
 implementation
@@ -86,12 +110,6 @@ end;
 {$ENDREGION}
 
 {$REGION 'TNIAttributeArray'}
-(*  TNIAttributeArray = class
-    private
-    FAttrBufferID: TNIAttrBufferID;
-    FAttrBufferValues: TNIAttrBufferID;
-    FAttrBufferIndex: Integer; *)
-
 function TNIAttributeArray.getAttributeIDPtr: NCTYPE_ATTRID_P;
 begin
   Result := @FAttributeIDArray;
@@ -116,6 +134,26 @@ end;
 {$ENDREGION}
 
 {$REGION 'TNICanLink'}
+
+function TNICanLink.int64NI2D(AInt64: NCTYPE_UINT64): Int64;
+begin
+  Result := AInt64.LowPart + (Int64(AInt64.HighPart) shl 32);
+end;
+
+function TNICanLink.baudrateD2NI(ABaudRate: TNICanBaudrate): NCTYPE_UINT32;
+begin
+  case ABaudRate of
+    canBaud10K: Result := NC_BAUD_10K;
+    canBaud100K: Result := NC_BAUD_100K;
+    canBaud125K: Result := NC_BAUD_125K;
+    canBaud250K: Result := NC_BAUD_250K;
+    canBaud500K: Result := NC_BAUD_500K;
+    canBaud1000K: Result := NC_BAUD_1000K;
+    else
+      Result := 0;
+  end;
+end;
+
 function TNICanLink.configure: NCTYPE_STATUS;
 begin
 	Result := ncConfig(
@@ -125,17 +163,48 @@ begin
     FAttrArray.AttributeValuesPtr);
 end;
 
-function TNICanLink.statusToString(AStatus: NCTYPE_STATUS): string;
+function TNICanLink.readFromCan: NCTYPE_STATUS;
 var
-  LBuffer: array [0..1023] of AnsiChar;
+  LCanMsg: TCanMsg;
+  LActualRead: Integer;
+  LNumMsg: Integer;
+  I: Integer;
 begin
-	ncStatusToString(AStatus,1024,@LBuffer);
-	Result := Trim(LBuffer); // implict conversion
+  Result := ncReadMult(
+         			FCanNetworkObj,
+        			sizeof(NCTYPE_CAN_STRUCT)*kNumObject,
+        			@FNICanBuffer,
+        			@LActualRead);
+
+  // #DEBUG
+  LNumMsg := LActualRead div sizeof(NCTYPE_CAN_STRUCT);
+  FLogger.LogDebug('Read data: byte=%d, obj=%d objSize=%d',[LActualRead,LNumMsg,sizeof(NCTYPE_CAN_STRUCT)]);
+
+  for I := 0 to LNumMsg-1 do begin
+    // TODO 2 -cFEATURE : inserire il controllo x gli errori
+    // normal can frame
+    if FNICanBuffer[I].FrameType = 0 then begin
+      LCanMsg.ecmTime := int64NI2D(FNICanBuffer[I].Timestamp);
+      LCanMsg.ecmID  := FNICanBuffer[I].ArbitrationId;
+      LCanMsg.ecmLen := FNICanBuffer[I].DataLength;
+      // copy CAN data buffer
+      Move(FNICanBuffer[I].Data,LCanMsg.ecmData,8);
+      FReadMsgQueue.Enqueue(LCanMsg);
+    end else
+      FLogger.LogDebug('Invalid frame (%d)',[FNICanBuffer[I].FrameType]);
+  end;
+end;
+
+function TNICanLink.statusToString(AStatus: NCTYPE_STATUS): string;
+begin
+	ncStatusToString(AStatus,1024,@FErrorStringBuf);
+	Result := Trim(string(FErrorStringBuf));
 end;
 
 procedure TNICanLink.checkCanerror;
 begin
-  // TODO 1 -cFUNCTION : procedure TNICanLink.checkCanerror;
+  // TODO 2 -cFUNCTION : procedure TNICanLink.checkCanerror;
+  // funzione per il controllo di errori sul bus sulla chiusura dell' interfaccia Can
 end;
 
 procedure TNICanLink.setName(AName: string);
@@ -145,47 +214,65 @@ begin
   FName := AName;
 end;
 
+procedure TNICanLink.setBaudrate(ABaudRate: TNICanBaudrate);
+begin
+  if FActive then
+    raise ENICanException.Create('Cannot change speed: device active');
+
+  if (FBaudRate <> ABaudRate) and (baudrateD2NI(ABaudRate) <> 0) then
+    FBaudRate := ABaudRate;
+end;
+
 constructor TNICanLink.Create;
 begin
   FLogger := TDbgLogger.Instance;
+  FReadMsgQueue := TCanMsgQueue.Create;
+  FWriteMsgQueue := TCanMsgQueue.Create;
   FAttrArray := TNIAttributeArray.Create;
+  FBaudrate := canBaud100K;
   FActive := false;
 end;
 
 destructor TNICanLink.Destroy;
 begin
   FAttrArray.Free;
+  FReadMsgQueue.Free;
+  FWriteMsgQueue.Free;
 end;
 
 procedure TNICanLink.Open;
 var
-  LStatus: NCTYPE_STATUS;
-  simpleAttrVal: NCTYPE_UINT32;
+  LSimpleAttrVal: NCTYPE_UINT32;
 begin
   if not FActive then begin
     FAttrArray.Reset;
-    FAttrArray.Add(NC_ATTR_BAUD_RATE,100000);
+    FAttrArray.Add(NC_ATTR_BAUD_RATE,baudrateD2NI(FBaudRate));
     FAttrArray.Add(NC_ATTR_START_ON_OPEN,NC_FALSE);
-    LStatus := configure;
+    FLastStatus := configure;
 
-    if LStatus <> 0 then begin
-      FLogger.LogWarning('NI-Err: configuring Err: %s',[statusToString(LStatus)]);
+    if FLastStatus <> 0 then begin
+      FLogger.LogWarning('NI-Err: configuring Err: %s',[statusToString(FLastStatus)]);
       raise ENICanOpenError.Create;
     end;
 
-    // TODO 1 -cFIXME : check NI function
-    LStatus := ncOpenObject(PAnsiChar(AnsiString(FName)),@FCanNetworkObj);
-    if LStatus = 0 then
-      FActive := true
-    else begin
-      FLogger.LogWarning('NI-Err: opening Err: %s',[statusToString(LStatus)]);
+    FLastStatus := ncOpenObject(PAnsiChar(AnsiString(FName)),@FCanNetworkObj);
+    if FLastStatus <> 0 then begin
+      FLogger.LogWarning('NI-Err: opening Err: %s',[statusToString(FLastStatus)]);
       raise ENICanOpenError.Create;
     end;
 
-    simpleAttrVal := NC_TRUE;
-    ncSetAttribute(FCanNetworkObj,NC_ATTR_LOG_BUS_ERROR ,sizeof(simpleAttrVal),@simpleAttrVal);
-    ncAction(FCanNetworkObj,NC_OP_START,0);
+    LSimpleAttrVal := NC_TRUE;
+    ncSetAttribute(FCanNetworkObj,NC_ATTR_LOG_BUS_ERROR ,sizeof(LSimpleAttrVal),@LSimpleAttrVal);
+    FLastStatus := ncAction(FCanNetworkObj,NC_OP_START,0);
 
+    if FLastStatus <> 0 then begin
+      FLogger.LogWarning('NI-Err: opening rr: %s',[statusToString(FLastStatus)]);
+      ncCloseObject(FCanNetworkObj);
+      FCanNetworkObj := 0;
+      raise ENICanOpenError.Create;
+    end;
+
+    FActive := true;
     FLogger.LogMessage('Can Open');
   end;
 end;
@@ -201,23 +288,77 @@ begin
     FLogger.LogMessage('Can Closed');
   end;
 end;
-(*
+
 function TNICanLink.Read(var AMsg: TCanMsg): Boolean;
+var
+  LStatus: NCTYPE_STATUS;
 begin
   Result := true;
-  if FMsgIndex = FMsgCount then
-    readFromCan;
+  LStatus := 0;
+  if FReadMsgQueue.Count = 0 then
+    LStatus := readFromCan;
 
-  if FMsgCount > 0 then
-    readMsgFromBuffer(AMsg)
-  else
-    Result := false;
+  if LStatus = 0 then begin
+    if FReadMsgQueue.Count > 0 then
+      AMsg := FReadMsgQueue.Dequeue
+    else
+      Result := false;
+  end else begin
+    FLogger.LogWarning('NI-Err: read error: %s',[statusToString(LStatus)]);
+    Result := False;
+  end;
 end;
 
-procedure TNICanLink.Write(AMsg: TCanMsg);
+function TNICanLink.Write(AMsg: TCanMsg): Boolean;
+var
+  LNICanFrame: NCTYPE_CAN_FRAME;
 begin
+  Result := true;
+  LNICanFrame.ArbitrationId := AMsg.ecmID;
+  LNICanFrame.IsRemote      := 0;
+  LNICanFrame.DataLength    := AMsg.ecmLen;
 
+  Move(AMsg.ecmData,LNICanFrame.Data,8);
+  FLastStatus := ncWrite(FCanNetworkObj,sizeof(LNICanFrame),@LNICanFrame);
+
+  if FLastStatus <> 0 then begin
+    FLogger.LogWarning('NI-Err: write error: %s',[statusToString(FLastStatus)]);
+    Result := False;
+  end;
 end;
-*)
+
+function TNICanLink.WriteQueued(AMsg: TCanMsg): Boolean;
+begin
+  Result := true;
+  FWriteMsgQueue.Enqueue(AMsg);
+  if FWriteMsgQueue.Count = kNumObject then
+    Result := FlushWriteQueue;
+end;
+
+function TNICanLink.FlushWriteQueue: Boolean;
+var
+  LCanMsg: TCanMsg;
+  I: Integer;
+  LDataSize: Integer;
+begin
+  Result := true;
+  for I := 0 to FWriteMsgQueue.Count - 1 do begin
+    LCanMsg := FWriteMsgQueue.Dequeue;
+    FNICanBuffer[I].ArbitrationId := LCanMsg.ecmID;
+    FNICanBuffer[I].FrameType     := 0;
+    FNICanBuffer[I].DataLength    := LCanMsg.ecmLen;
+    Move(LCanMsg.ecmData,FNICanBuffer[I].Data,8);
+  end;
+
+  LDataSize := sizeof(NCTYPE_CAN_STRUCT) * FWriteMsgQueue.Count;
+  FLastStatus := ncWriteMult(FCanNetworkObj,LDataSize,@FNICanBuffer);
+
+  if FLastStatus <> 0 then begin
+    FLogger.LogWarning('NI-Err: write error: %s',[statusToString(FLastStatus)]);
+    Result := False;
+  end;
+end;
+
+
 {$ENDREGION}
 end.

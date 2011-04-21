@@ -35,6 +35,7 @@
 			<DCC_K>false</DCC_K>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1)'!=''">
+			<DCC_Hints>false</DCC_Hints>
 			<BRCC_Defines>USE_SMARTINSPECT;$(BRCC_Defines)</BRCC_Defines>
 			<DCC_Define>DEBUG;USE_SMARTINSPECT;$(DCC_Define)</DCC_Define>
 			<DCC_Optimize>false</DCC_Optimize>

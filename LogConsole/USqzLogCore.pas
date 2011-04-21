@@ -89,12 +89,9 @@ type
     spDataInt: Integer;
   end;
 
-//typedef std::vector<TSqzLogParam> TSqzLogParamVect;
-  TSqzLogParamVect = TList<TSqzLogParam>;
-
   TSqzFrame = class
     private
-    FParameters: TSqzLogParamVect;
+    FParameters: TList<TSqzLogParam>;
     FTempPar: TSqzLogParam;
     FStringBuffer: array [0..255] of char;
     FMsgCode: Integer;
@@ -255,16 +252,12 @@ var
   LTitle: string;
 	LEntry: TSqzMsgEntry;
 begin
-{$IFDEF USE_SMARTINSPECT}
 	TDbgLogger.Instance.LogDebug('SQZLOG: parse set <%s>',[AStr]);
-{$ENDIF}
   Result := nil;
 	LPos := Pos(kMSGStr,AStr);
 
 	if LPos = 0 then begin
-{$IFDEF USE_SMARTINSPECT}
 		TDbgLogger.Instance.LogError('SQZLOG parseMsg Fail');
-{$ENDIF}
 		// TODO -cFIXME  2 : mettere eccezione + specifica
 		raise Exception.Create('parseMsg fail');
 	end;
@@ -279,9 +272,7 @@ begin
 		LEntry := TSqzMsgEntry.Create(LId,LSpec,LTitle);
 	except
 	  on EConvertError do
-{$IFDEF USE_SMARTINSPECT}
   		TDbgLogger.Instance.LogException('SQZLOG: parseMsg file format error')
-{$ENDIF};
 	end;
 
 	Result := LEntry;
@@ -422,7 +413,7 @@ end;
 
 function TSqzLogHandler.ProcessSqzData(AData: array of Byte; LSize: Integer): Boolean;
 var
-	LSet: TSqzMsgSet;
+	//LSet: TSqzMsgSet; #OC
 	LSetId: Integer;
   LArray: array[0..7] of Byte;
   LDataShift,
@@ -564,9 +555,7 @@ procedure TSqzLogNetHandler.AddMsgSet(AFileName: string);
 var
 	LSet: TSqzMsgSet;
 begin
-{$IFDEF USE_SMARTINSPECT}
 	TDbgLogger.Instance.LogMessage('SQZLOG: Load set: <%s>',[AFileName]);
-{$ENDIF}
   LSet := TSqzMsgSet.Create;
 	LSet.Load(AFileName);
 	FMsgSets.Add(LSet);
@@ -711,8 +700,6 @@ end;
 // ----------------------------------------------------------------------------
 
 procedure TSqzFrame.Clear;
-var
-  LParam: TSqzLogParam;
 begin
 	FParameters.Clear;
 	FFrameAuxBuffer.Clear;
@@ -734,7 +721,6 @@ end;
 procedure TSqzFrame.AddFrameData(AData: array of byte; ALength: Integer);
 var
 	i: Integer;
-	s: string;
 	complete: Boolean;
 begin
 	if not FOpen then begin
