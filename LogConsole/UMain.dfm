@@ -27,23 +27,13 @@ object fmMain: TfmMain
     Anchors = [akLeft, akBottom]
     Caption = 'Device'
   end
-  object Memo1: TMemo
-    Left = 16
-    Top = 8
-    Width = 737
-    Height = 417
-    Anchors = [akLeft, akTop, akRight, akBottom]
-    Lines.Strings = (
-      'Memo1')
-    TabOrder = 0
-  end
   object eName: TEdit
     Left = 64
     Top = 438
     Width = 81
     Height = 21
     Anchors = [akLeft, akBottom]
-    TabOrder = 1
+    TabOrder = 0
   end
   object cbOpen: TCheckBox
     Left = 167
@@ -52,8 +42,16 @@ object fmMain: TfmMain
     Height = 17
     Anchors = [akLeft, akBottom]
     Caption = 'Open'
-    TabOrder = 2
+    TabOrder = 1
     OnClick = cbOpenClick
+  end
+  object lbLogEntry: TListBox
+    Left = 16
+    Top = 16
+    Width = 737
+    Height = 417
+    ItemHeight = 13
+    TabOrder = 2
   end
   object Timer1: TTimer
     Interval = 2000

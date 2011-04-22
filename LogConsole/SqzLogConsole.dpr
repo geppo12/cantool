@@ -4,12 +4,12 @@ uses
   Forms,
   UMain in 'UMain.pas' {fmMain},
   USqzLogCore in 'USqzLogCore.pas',
-  USqzLogPrint in 'USqzLogPrint.pas',
   UNICanLink in 'UNICanLink.pas',
   UNIAPI in 'UNIAPI.pas',
   UDbgLogger in 'UDbgLogger.pas',
   UCanMsg in 'UCanMsg.pas',
-  UFileList in 'UFileList.pas';
+  UFileList in 'UFileList.pas',
+  USqzLogPrint in 'USqzLogPrint.pas';
 
 {$R *.res}
 

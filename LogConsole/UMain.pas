@@ -13,11 +13,11 @@ uses
 
 type
   TfmMain = class(TForm)
-    Memo1: TMemo;
     eName: TEdit;
     cbOpen: TCheckBox;
     Label1: TLabel;
     Timer1: TTimer;
+    lbLogEntry: TListBox;
     procedure cbOpenClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -30,6 +30,7 @@ type
     FSqzLogProcessor: TSqzLogNetHandler;
     FCanSqzFilter: Cardinal;
     FCanSqzId: Cardinal;
+    procedure print(ANodeId: Integer; AClass: TSqzLogClass; ATitle: string);
 
   public
     { Public declarations }
@@ -80,6 +81,7 @@ begin
   FLogger.LogMessage('Link inizialized');
 
   FSqzLogProcessor := TSqzLogNetHandler.Create;
+  FSqzLogProcessor.OnPrint := print;
 
   FFileList := TFileNamesList.Create;
   FFileList.Directory := ExtractFilePath(Application.ExeName)+kMsgSetSubpath + '\';
@@ -126,6 +128,17 @@ begin
 end;
 
 {$REGION 'Local procedures'}
+
+procedure TfmMain.print(ANodeId: Integer; AClass: TSqzLogClass; ATitle: string);
+var
+  LMessageString: string;
+begin
+  LMessageString := Format('N:%d -- ',[ANodeId])+ATitle;
+
+  lbLogEntry.Items.Add(LMessageString);
+  FLogger.LogMessage('Message sqzlog: '+LMessageString);
+end;
+
 {$ENDREGION}
 
 

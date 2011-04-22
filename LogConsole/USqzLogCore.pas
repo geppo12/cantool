@@ -7,6 +7,7 @@ uses
   Classes,
   USqzLogPrint;
 
+{.$DEFINE USE_PRINTER_OBJ}
 type
 
   // TODO 2 -cFIXME : creare classe generale
@@ -104,6 +105,8 @@ type
     FFrameAuxBuffer: TStringList;
     FFrameSet: TSqzMsgSet;
 
+    // convert standard C format in Delphi format
+    function C2DFormat(ACString: string): string;
     function parClose(ACh: Char): Boolean;
     function getNextParam(AParam: TSqzLogParam): Boolean;
     function getText(): string;
@@ -144,11 +147,28 @@ type
     property NodeId: Integer read FNodeId;
   end;
 
+{$IFNDEF USE_PRINTER_OBJ}
+
+  TSqzLogClass = (
+    sqzDebug,
+    sqzVerbose,
+    sqzMessage,
+    sqzWarning,
+    sqzError,
+    sqzFatal
+  );
+
+  TSqzPrintEvent = procedure(ANodeId: Integer; AClass: TSqzLogClass; ATitle: string) of object;
+{$ENDIF}
 
   TSqzLogNetHandler = class
     private
     FLogHandlers: TObjectList;
+{$IFDEF USE_PRINTER_OBJ}
     FLogPrinters: TSqzLogPrinterList;
+{$ELSE}
+    FOnPrint: TSqzPrintEvent;
+{$ENDIF}
     FMsgSets: TSqzMsgSetList;
 
     function findNode(ANodeId: Integer): TSqzLogHandler;
@@ -157,12 +177,17 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure AddNode(ANodeId: Integer);
+{$IFDEF USE_PRINTER_OBJ}
     procedure AddPrinter(APrinter: TSqzLogPrinter);
+{$ENDIF}
     procedure ProcessSqzData(const ANode: Integer; const AData: array of Byte; ASize: Integer);
     procedure AddMsgSet(AFileName: string);
     // TODO 1 -cFEATURE : 	implementare procedure SetProtoV2(bool AProtoV2)
     //procedure SetProtoV2(AProtoV2: Boolean); {}
     procedure ClearSets();
+{$IFNDEF USE_PRINTER_OBJ}
+    property OnPrint: TSqzPrintEvent read FOnPrint write FOnPrint;
+{$ENDIF}
   end;
 
 
@@ -498,16 +523,23 @@ var
 	I: Integer;
 	LPrinter: TSqzLogPrinter;
 begin
+{$IFDEF USE_PRINTER_OBJ}
 	for I := 0 to FLogPrinters.Count - 1 do begin
 		LPrinter := FLogPrinters.Printers[I];
 		LPrinter.PrintLog(ANodeId, AClass, ATitle);
 	end;
+{$ELSE}
+  if Assigned(FOnPrint) then
+    FOnPrint(ANodeId,AClass,ATitle);
+{$ENDIF}
 end;
 // ----------------------------------------------------------------------------
 
 constructor TSqzLogNetHandler.Create;
 begin
+{$IFDEF USE_PRINTER_OBJ}
 	FLogPrinters := TSqzLogPrinterList.Create;
+{$ENDIF}
 	FLogHandlers := TObjectList.Create;
 	FMsgSets := TSqzMsgSetList.Create;
 end;
@@ -517,7 +549,9 @@ destructor TSqzLogNetHandler.Destroy;
 begin
 	FMsgSets.Free;
 	FLogHandlers.Free;
+{$IFDEF USE_PRINTER_OBJ}
 	FLogPrinters.Free;
+{$ENDIF}
 end;
 // ----------------------------------------------------------------------------
 
@@ -527,11 +561,12 @@ begin
 		FLogHandlers.Add(TSqzLogHandler.Create(ANodeId,FMsgSets));
 end;
 // ----------------------------------------------------------------------------
-
+{$IFDEF USE_PRINTER_OBJ}
 procedure TSqzLogNetHandler.AddPrinter(APrinter: TSqzLogPrinter);
 begin
 	FLogPrinters.AddPrinter(APrinter);
 end;
+{$ENDIF}
 // ----------------------------------------------------------------------------
 
 procedure TSqzLogNetHandler.ProcessSqzData(const ANode: Integer; const AData:
@@ -574,6 +609,23 @@ end;
 {$ENDREGION}
 
 {$REGION 'TSqzFrame'}
+
+function TSqzFrame.C2DFormat(ACString: string): string;
+var
+  LCh: Char;
+  LOutCh: Char;
+begin
+  // TODO 2 -cFIXME: this function should be more smart to interpret all kind of C formats
+  Result := '';
+  for LCh in ACString do begin
+    if LCh = '0' then
+      LOutCh := '.'
+    else
+      LOutCh := LCh;
+    Result := Result + LOutCh;
+  end;
+end;
+
 function TSqzFrame.parClose(ACh: Char): Boolean;
 begin
   Result := false;
@@ -620,6 +672,8 @@ begin
 			parFmt := parFmt + ch;
 			parStr := '';
 			if parClose(ch) then begin
+        // convert standard C format in Delphi format
+        parFmt := C2DFormat(parFmt);
 				case FParameters[parCount].spType of
 					lpString: parStr := Format(parFmt,[FParameters[parCount].spDataString]);
 					lpByte,
