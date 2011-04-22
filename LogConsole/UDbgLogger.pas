@@ -280,7 +280,7 @@ end;
 procedure TDbgLogger.LogMessage(AStringFmt: string; AArgs: array of const);
 begin
   if FEnable then try
-    FLoggerEngine.LogData(lcWarning,Format(AStringFmt,AArgs));
+    FLoggerEngine.LogData(lcMessage,Format(AStringFmt,AArgs));
   except
     on E: Exception do
       FLoggerEngine.LogData(lcInternal,E.Message);

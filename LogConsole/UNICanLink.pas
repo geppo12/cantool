@@ -178,7 +178,7 @@ begin
 
   // #DEBUG
   LNumMsg := LActualRead div sizeof(NCTYPE_CAN_STRUCT);
-  FLogger.LogDebug('Read data: byte=%d, obj=%d objSize=%d',[LActualRead,LNumMsg,sizeof(NCTYPE_CAN_STRUCT)]);
+  FLogger.LogDebug('NICAN: Read data: byte=%d, obj=%d objSize=%d',[LActualRead,LNumMsg,sizeof(NCTYPE_CAN_STRUCT)]);
 
   for I := 0 to LNumMsg-1 do begin
     // TODO 2 -cFEATURE : inserire il controllo x gli errori
@@ -191,7 +191,7 @@ begin
       Move(FNICanBuffer[I].Data,LCanMsg.ecmData,8);
       FReadMsgQueue.Enqueue(LCanMsg);
     end else
-      FLogger.LogDebug('Invalid frame (%d)',[FNICanBuffer[I].FrameType]);
+      FLogger.LogDebug('NICAN: Invalid frame (%d)',[FNICanBuffer[I].FrameType]);
   end;
 end;
 
@@ -251,13 +251,13 @@ begin
     FLastStatus := configure;
 
     if FLastStatus <> 0 then begin
-      FLogger.LogWarning('NI-Err: configuring Err: %s',[statusToString(FLastStatus)]);
+      FLogger.LogWarning('NICAN: Err: configuring Err: %s',[statusToString(FLastStatus)]);
       raise ENICanOpenError.Create;
     end;
 
     FLastStatus := ncOpenObject(PAnsiChar(AnsiString(FName)),@FCanNetworkObj);
     if FLastStatus <> 0 then begin
-      FLogger.LogWarning('NI-Err: opening Err: %s',[statusToString(FLastStatus)]);
+      FLogger.LogWarning('NICAN: Err: opening Err: %s',[statusToString(FLastStatus)]);
       raise ENICanOpenError.Create;
     end;
 
@@ -266,14 +266,14 @@ begin
     FLastStatus := ncAction(FCanNetworkObj,NC_OP_START,0);
 
     if FLastStatus <> 0 then begin
-      FLogger.LogWarning('NI-Err: opening rr: %s',[statusToString(FLastStatus)]);
+      FLogger.LogWarning('NICAN: Err: opening rr: %s',[statusToString(FLastStatus)]);
       ncCloseObject(FCanNetworkObj);
       FCanNetworkObj := 0;
       raise ENICanOpenError.Create;
     end;
 
     FActive := true;
-    FLogger.LogMessage('Can Open');
+    FLogger.LogMessage('NICAN: Can Open');
   end;
 end;
 
@@ -285,7 +285,7 @@ begin
     ncCloseObject(FCanNetworkObj);
     FCanNetworkObj := 0;
     FActive := false;
-    FLogger.LogMessage('Can Closed');
+    FLogger.LogMessage('NICAN: Can Closed');
   end;
 end;
 
@@ -304,7 +304,7 @@ begin
     else
       Result := false;
   end else begin
-    FLogger.LogWarning('NI-Err: read error: %s',[statusToString(LStatus)]);
+    FLogger.LogWarning('NICAN: Err: read error: %s',[statusToString(LStatus)]);
     Result := False;
   end;
 end;
@@ -322,7 +322,7 @@ begin
   FLastStatus := ncWrite(FCanNetworkObj,sizeof(LNICanFrame),@LNICanFrame);
 
   if FLastStatus <> 0 then begin
-    FLogger.LogWarning('NI-Err: write error: %s',[statusToString(FLastStatus)]);
+    FLogger.LogWarning('NICAN: Err: write error: %s',[statusToString(FLastStatus)]);
     Result := False;
   end;
 end;
@@ -354,7 +354,7 @@ begin
   FLastStatus := ncWriteMult(FCanNetworkObj,LDataSize,@FNICanBuffer);
 
   if FLastStatus <> 0 then begin
-    FLogger.LogWarning('NI-Err: write error: %s',[statusToString(FLastStatus)]);
+    FLogger.LogWarning('NICAN: Err: write error: %s',[statusToString(FLastStatus)]);
     Result := False;
   end;
 end;

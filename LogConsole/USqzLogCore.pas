@@ -5,7 +5,6 @@ uses
   Generics.Collections,
   Contnrs,
   Classes,
-  UCanMsg,
   USqzLogPrint;
 
 type
@@ -89,9 +88,11 @@ type
     spDataInt: Integer;
   end;
 
+  TParametersList = TList<TSqzLogParam>;
+
   TSqzFrame = class
     private
-    FParameters: TList<TSqzLogParam>;
+    FParameters: TParametersList;
     FTempPar: TSqzLogParam;
     FStringBuffer: array [0..255] of char;
     FMsgCode: Integer;
@@ -113,12 +114,15 @@ type
     destructor Destroy; override;
     procedure Clear();
     procedure InitFrame(AFrameSet: TSqzMsgSet);
-    procedure AddFrameData(AData: array of byte; ALength: Integer);
+    procedure AddFrameData(var AData: array of byte; ALength: Integer);
     procedure Close();
 
     property Valid: Boolean read getValid;
     property Text: string read getText;
+    property Open: Boolean read FOpen;
   end;
+
+  TSqzPacketOfByte = array of Byte;
 
   TSqzLogHandler = class
     private
@@ -132,12 +136,14 @@ type
 
     public
     constructor Create(ANodeId: Integer; AMsgSets: TSqzMsgSetList);
-    function ProcessSqzMsg(AMsg: TCanMsg): Boolean;
-    function ProcessSqzData(AData: array of Byte; LSize: Integer): Boolean;
+    destructor Destroy; override;
+    function ProcessSqzData(const AData: array of Byte; const ASize: Integer):
+        Boolean;
     function GetLogMessage(): string;
 
     property NodeId: Integer read FNodeId;
   end;
+
 
   TSqzLogNetHandler = class
     private
@@ -152,7 +158,7 @@ type
     destructor Destroy; override;
     procedure AddNode(ANodeId: Integer);
     procedure AddPrinter(APrinter: TSqzLogPrinter);
-    procedure ProcessSqzMsg(AMsg: TCanMsg);
+    procedure ProcessSqzData(const ANode: Integer; const AData: array of Byte; ASize: Integer);
     procedure AddMsgSet(AFileName: string);
     // TODO 1 -cFEATURE : 	implementare procedure SetProtoV2(bool AProtoV2)
     //procedure SetProtoV2(AProtoV2: Boolean); {}
@@ -219,7 +225,6 @@ end;
 function TSqzMsgSet.parseSet(AStr: string): Integer;
 var
 	LPos: Integer;
-  LStr: string;
 begin
 	TDbgLogger.Instance.LogDebug('SQZLOG: parse set <%s>',[AStr]);
 
@@ -230,8 +235,7 @@ begin
 		raise Exception.Create('parseSet fail');
 	end;
 
-  // TODO 1 -cFIXME : verificare  la stringa risultante
-	LStr := Trim(RightStr(AStr,Length(AStr)-(LPos+Length(kSETStr))));
+	AStr := Trim(RightStr(AStr,Length(AStr)-(LPos+Length(kSETStr))));
 
 	try
 		// uso pos come retVal
@@ -402,28 +406,29 @@ constructor TSqzLogHandler.Create(ANodeId: Integer; AMsgSets: TSqzMsgSetList);
 begin
   FNodeId := ANodeId;
   FMsgSets := AMsgSets;
+  FFrame := TSqzFrame.Create;
 end;
 // ----------------------------------------------------------------------------
 
-function TSqzLogHandler.ProcessSqzMsg(AMsg: TCanMsg): Boolean;
+destructor TSqzLogHandler.Destroy;
 begin
-	Result := ProcessSqzData(AMsg.ecmData,AMsg.ecmLen);
+  FFrame.Free;
 end;
 // ----------------------------------------------------------------------------
 
-function TSqzLogHandler.ProcessSqzData(AData: array of Byte; LSize: Integer): Boolean;
+function TSqzLogHandler.ProcessSqzData(const AData: array of Byte; const ASize:
+    Integer): Boolean;
 var
-	//LSet: TSqzMsgSet; #OC
 	LSetId: Integer;
   LArray: array[0..7] of Byte;
   LDataShift,
   I: Integer;
 begin
 	// lo metto anche se embra inutile perche' i messaggi can possono avere lunghezza nulla
-	if LSize = 0 then
+	if ASize = 0 then
 		Exit(false);
 
-	TDbgLogger.Instance.LogDebug('SQZLOG: ProcessData <%d>',[LSize]);
+	TDbgLogger.Instance.LogDebug('SQZLOG: ProcessData <%d>',[ASize]);
 
 	// verifica della sequenza e dello start frame
 	if not checkUnitSeq(AData[0]) then begin
@@ -445,11 +450,11 @@ begin
       LDataShift := 1;
 
     { copio i dati in un array temporaneo per rimuovere i dati inziali }
-    for I := 0 to LSize - LDataShift do
+    for I := 0 to ASize - LDataShift do
       LArray[I] := AData[I+LDataShift];
 
     // aggiunge i dati al frame attuale
-    FFrame.AddFrameData(LArray,LSize-LDataShift);
+    FFrame.AddFrameData(LArray,ASize-LDataShift);
 
 		// se il frame è terminato
 		if (AData[0] and $80) = 0 then begin
@@ -459,8 +464,8 @@ begin
 	except
     // TODO 1 -cFIXME : creare eccezione
     //on E: ESetNotFound do
-    on E: Exception do
-		  TDbgLogger.Instance.LogWarning(E.Message)
+    on Exception do
+		  TDbgLogger.Instance.LogException('SQZLOG: TSqzLogHandler.ProcessSqzData');
 	end;
 
 	Result := false;
@@ -529,23 +534,23 @@ begin
 end;
 // ----------------------------------------------------------------------------
 
-procedure TSqzLogNetHandler.ProcessSqzMsg(AMsg: TCanMsg);
+procedure TSqzLogNetHandler.ProcessSqzData(const ANode: Integer; const AData:
+    array of Byte; ASize: Integer);
 var
 	LNodeId: Integer;
 	LStr: string;
 	LHandler: TSqzLogHandler;
 begin
-  LNodeId := AMsg.getNode;
-	LHandler := findNode(LNodeId);
+	LHandler := findNode(ANode);
 	if LHandler = nil then begin
-		LHandler := TSqzLogHandler.Create(LNodeId,FMsgSets);
+		LHandler := TSqzLogHandler.Create(ANode,FMsgSets);
 		FLogHandlers.Add(LHandler);
 	end;
 
-	if LHandler.ProcessSqzMsg(AMsg) then begin
+	if LHandler.ProcessSqzData(AData,ASize) then begin
 		LStr := LHandler.GetLogMessage;
 		if LStr <> '' then
-			print(LNodeId,sqzVerbose,LStr);
+			print(ANode,sqzVerbose,LStr);
 	end;
 end;
 
@@ -686,6 +691,7 @@ end;
 constructor TSqzFrame.Create;
 begin
   inherited;
+  FParameters := TParametersList.Create;
 	FFrameAuxBuffer := TStringList.Create;
 	FFrameAuxBuffer.LineBreak := '';
 end;
@@ -695,6 +701,7 @@ destructor TSqzFrame.Destroy;
 begin
 	Clear;
 	FFrameAuxBuffer.Free;
+  FParameters.Free;
   inherited;
 end;
 // ----------------------------------------------------------------------------
@@ -718,15 +725,13 @@ begin
 end;
 // ----------------------------------------------------------------------------
 
-procedure TSqzFrame.AddFrameData(AData: array of byte; ALength: Integer);
+procedure TSqzFrame.AddFrameData(var AData: array of byte; ALength: Integer);
 var
 	i: Integer;
 	complete: Boolean;
 begin
-	if not FOpen then begin
-		TDbgLogger.Instance.LogDebug('SQZLOG: add data to a closed frame');
-		Exit;
-	end;
+	if not FOpen then
+    Exit;
 
 	TDbgLogger.Instance.LogDebug('SQZLOG: AddFrameData size=%d',[ALength]);
 
