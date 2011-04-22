@@ -4,6 +4,9 @@ unit UDbgLogger;
 
 interface
 
+uses
+  SysUtils;
+
 type
   TDbgLogClass = (
     lcInternal,
@@ -47,9 +50,10 @@ type
     public
     class constructor Create;
     class destructor Destroy;
+    destructor Destroy; override;
     procedure InitEngine(AEngine: TDbgLoggerType);
     procedure Reset;
-    procedure LogException(AString: string);
+    procedure LogException(AString: string = '');
     procedure LogError(AString: string); overload;
     procedure LogError(AStringFmt: string; AArgs: array of const); overload;
     procedure LogWarning(AString: string); overload;
@@ -65,6 +69,10 @@ type
     class property Instance: TDbgLogger read FInstance;
   end;
 
+  ELogEngineUnavaible = class(Exception)
+    public
+    constructor Create(AType: TDbgLoggerType);
+  end;
 
 implementation
 
@@ -73,10 +81,12 @@ uses
   SiAuto,
   SmartInspect,
 {$ENDIF}
-  Forms,
-  SysUtils;
+  TypInfo,
+  Windows,
+  Forms;
+
 type
-{$REGION 'SmartInspactEngine'}
+{$REGION 'Engine SmartInspact'}
 {$IFDEF USE_SMARTINSPECT}
   TDbgLoggerEngineSI = class(TDbgLoggerEngine)
     protected
@@ -91,11 +101,26 @@ type
 {$ENDIF}
 {$ENDREGION}
 
+{$REGION 'Engine Windows'}
+  TDbgLoggerEngineWin = class(TDbgLoggerEngine)
+    public
+    procedure LogData(AClass: TDbgLogClass; AString: string); override;
+  end;
+
+{$ENDREGION}
+
 // trick to support real application folder in future
 function GetAppDataFolder: string;
 begin
   Result := ExtractFilePath(Application.ExeName);
 end;
+
+{$REGION 'ELogEngineUnavaible'}
+constructor ELogEngineUnavaible.Create(AType: TDbgLoggerType);
+begin
+  inherited Create(GetEnumName(TypeInfo(TDbgLoggerType),Ord(AType)))
+end;
+
 
 {$REGION 'TDbgLoggerEngine'}
 
@@ -157,14 +182,21 @@ begin
   FInstance.Free;
 end;
 
+destructor TDbgLogger.Destroy;
+begin
+  FLoggerEngine.Free;
+end;
+
 procedure TDbgLogger.InitEngine(AEngine: TDbgLoggerType);
 begin
   // TODO 2 -cFIXME : inserire eccezioni adatte
   case AEngine of
-    leWindows: ; //Exception.Create('Engine required not avaible');
+    leWindows: FLoggerEngine := TDbgLoggerEngineWin.Create;
     leSmartInspect:
 {$IFDEF USE_SMARTINSPECT}
       FLoggerEngine := TDbgLoggerEngineSI.Create;
+{$ELSE}
+      raise ELogEngineUnavaible.Create;
 {$ENDIF}
 
     leCodeSite: ; //raise Exception.Create('Engine required not avaible');
@@ -379,5 +411,25 @@ end;
 
 {$ENDIF} { USE_SMARTINSPECT }
 {$ENDREGION}
+
+
+{$REGION 'TDbgLoggerWin'}
+procedure TDbgLoggerEngineWin.LogData(AClass: TDbgLogClass; AString: string);
+var
+  LHdrString: string;
+begin
+  case AClass of
+    lcInternal: LHdrString := '[Internal Error]';
+    lcFatal: LHdrString := '[Fatal]';
+    lcError: LHdrString := '[Error]';
+    lcWarning: LHdrString := '[Warning]';
+    lcMessage: LHdrString := '[Message]';
+    lcVerbose: LHdrString := '[Verbose]';
+    lcDebug: LHdrString := '[Debug]';
+  end;
+
+  OutputDebugString(PChar('>>> '+ LHdrString + ' ' + AString + ' *** '));
+
+end;
 
 end.
