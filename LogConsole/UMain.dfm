@@ -1,7 +1,7 @@
 object fmMain: TfmMain
   Left = 0
   Top = 0
-  Caption = 'Ninjeppo Can Tool v 0.1'
+  Caption = 'Ninjeppo Can Tool v '
   ClientHeight = 467
   ClientWidth = 766
   Color = clBtnFace

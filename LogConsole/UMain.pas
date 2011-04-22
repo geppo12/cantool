@@ -47,6 +47,7 @@ implementation
 {$R *.dfm}
 
 uses
+  UFileVersion,
   UCanMsg;
 
 procedure TfmMain.cbOpenClick(Sender: TObject);
@@ -91,6 +92,8 @@ begin
     FSqzLogProcessor.AddMsgSet(LFile);
 
   FLogger.LogMessage('Msgsets loaded');
+
+  Caption := Caption + VersionInformation;
 
   FCanSqzFilter := $FFC000;
   FCanSqzId     := $FE0000;

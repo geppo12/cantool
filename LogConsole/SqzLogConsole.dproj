@@ -60,6 +60,7 @@
 			<DCCReference Include="UDbgLogger.pas"/>
 			<DCCReference Include="UCanMsg.pas"/>
 			<DCCReference Include="UFileList.pas"/>
+			<DCCReference Include="UFileVersion.pas"/>
 			<None Include="DVersions.inc"/>
 			<BuildConfiguration Include="Release">
 				<Key>Cfg_2</Key>
@@ -86,7 +87,7 @@
 						<VersionInfo Name="MajorVer">0</VersionInfo>
 						<VersionInfo Name="MinorVer">1</VersionInfo>
 						<VersionInfo Name="Release">0</VersionInfo>
-						<VersionInfo Name="Build">2</VersionInfo>
+						<VersionInfo Name="Build">4</VersionInfo>
 						<VersionInfo Name="Debug">False</VersionInfo>
 						<VersionInfo Name="PreRelease">False</VersionInfo>
 						<VersionInfo Name="Special">False</VersionInfo>
@@ -98,7 +99,7 @@
 					<VersionInfoKeys>
 						<VersionInfoKeys Name="CompanyName"/>
 						<VersionInfoKeys Name="FileDescription"/>
-						<VersionInfoKeys Name="FileVersion">0.1.0.2</VersionInfoKeys>
+						<VersionInfoKeys Name="FileVersion">0.1.0.4</VersionInfoKeys>
 						<VersionInfoKeys Name="InternalName"/>
 						<VersionInfoKeys Name="LegalCopyright"/>
 						<VersionInfoKeys Name="LegalTrademarks"/>

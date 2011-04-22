@@ -8,7 +8,8 @@ uses
   UNIAPI in 'UNIAPI.pas',
   UDbgLogger in 'UDbgLogger.pas',
   UCanMsg in 'UCanMsg.pas',
-  UFileList in 'UFileList.pas';
+  UFileList in 'UFileList.pas',
+  UFileVersion in 'UFileVersion.pas';
 
 {$R *.res}
 
