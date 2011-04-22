@@ -69,7 +69,8 @@ type
     class property Instance: TDbgLogger read FInstance;
   end;
 
-  ELogEngineUnavaible = class(Exception)
+  ELogEngineError = class(Exception);
+  ELogEngineUnavaible = class(ELogEngineError)
     public
     constructor Create(AType: TDbgLoggerType);
   end;
@@ -189,19 +190,18 @@ end;
 
 procedure TDbgLogger.InitEngine(AEngine: TDbgLoggerType);
 begin
-  // TODO 2 -cFIXME : inserire eccezioni adatte
   case AEngine of
     leWindows: FLoggerEngine := TDbgLoggerEngineWin.Create;
     leSmartInspect:
 {$IFDEF USE_SMARTINSPECT}
       FLoggerEngine := TDbgLoggerEngineSI.Create;
 {$ELSE}
-      raise ELogEngineUnavaible.Create;
+      raise ELogEngineUnavaible.Create(leSmartInspect);
 {$ENDIF}
 
     leCodeSite: ; //raise Exception.Create('Engine required not avaible');
     else
-      raise Exception.Create('Engine required unknown');
+      raise ELogEngineError.Create('Engine required unknown');
   end;
   if FLoggerEngine <> nil then begin
     FLoggerEngine.Init;

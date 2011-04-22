@@ -3,6 +3,8 @@
 { Only FRAME API for now           }
 unit UNIAPI;
 
+{$I DVERSIONS.INC}
+
 interface
 
 {$IFNDEF NO_FRAME_API}
@@ -42,8 +44,11 @@ type
   of characters with zero (the NULL character) used to indicate
   end-of-string.  This is known as an ASCIIZ string. }
 
-  // TODO 2 -cFIXME : valutare se mettere un ifdef per i compilatori che supportano solo pchar
+{$IFDEF DELPHI2009_OR_HIGHER}
   NCTYPE_STRING = PAnsiChar;
+{$ELSE}
+  NCTYPE_STRING = PChar;
+{$ENDIF}
 
 
   NCTYPE_STATUS   = NCTYPE_INT32;

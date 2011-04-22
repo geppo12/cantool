@@ -2,32 +2,28 @@ unit USqzLogCore;
 interface
 
 uses
+  SysUtils,
   Generics.Collections,
   Contnrs,
-  Classes,
-  USqzLogPrint;
+  Classes;
 
 {.$DEFINE USE_PRINTER_OBJ}
 type
 
-  // TODO 2 -cFIXME : creare classe generale
-  TSqzByteArray = class
+{ exceptions }
+  ESqzLogException = class(Exception);
+  ESqzSetNotFound = class(ESqzLogException)
     private
-    FArray: array of Byte;
-    FSize: Integer;
-    FLength: Integer;
-
-    function getData(AIndex: Integer): Byte;
+    FSetId: Integer;
 
     public
-    constructor Create;
-    destructor Destroy; override;
-    procedure Clear;
-    procedure AddByte(AByte: Byte);
-    procedure AddByteArray(AArray: array of Byte; ALen: Integer);
+    constructor Create(ASetId: Integer);
+    property SetId: Integer read FSetId;
+  end;
 
-    property Data[AIndex: Integer]: Byte read getData; default;
-    property Length: Integer read FLength;
+  ESqzLogSetParseError = class(ESqzLogException)
+    public
+    constructor Create;
   end;
 
   TSqzMsgEntry = class
@@ -86,7 +82,7 @@ type
     public
     spType: TSqzLogParamType;
     spDataString: string;
-    spDataInt: Integer;
+    spDataInt: Cardinal;
   end;
 
   TParametersList = TList<TSqzLogParam>;
@@ -108,7 +104,6 @@ type
     // convert standard C format in Delphi format
     function C2DFormat(ACString: string): string;
     function parClose(ACh: Char): Boolean;
-    function getNextParam(AParam: TSqzLogParam): Boolean;
     function getText(): string;
     function getValid(): Boolean;
 
@@ -182,7 +177,7 @@ type
 {$ENDIF}
     procedure ProcessSqzData(const ANode: Integer; const AData: array of Byte; ASize: Integer);
     procedure AddMsgSet(AFileName: string);
-    // TODO 1 -cFEATURE : 	implementare procedure SetProtoV2(bool AProtoV2)
+    // TODO 2 -cFEATURE : 	implementare procedure SetProtoV2(bool AProtoV2)
     //procedure SetProtoV2(AProtoV2: Boolean); {}
     procedure ClearSets();
 {$IFNDEF USE_PRINTER_OBJ}
@@ -194,55 +189,24 @@ type
 implementation
 uses
   StrUtils,
-  SysUtils,
   UDbgLogger;
 
 const
   kSETStr = 'SET';
   kMSGStr = 'MSG';
 
-{$REGION 'TSqzByteArray'}
-function TSqzByteArray.getData(AIndex: Integer): Byte;
+{$REGION 'EXCEPTION imp'}
+constructor ESqzSetNotFound.Create(ASetId: Integer);
 begin
-  Result := FArray[AIndex];
+  inherited CreateFmt('Msgset %d not found',[ASetId]);
+  FSetId := ASetId;
 end;
 
-constructor TSqzByteArray.Create;
+constructor ESqzLogSetParseError.Create;
 begin
-  Clear;
+  inherited Create('Msg parse error');
 end;
 
-destructor TSqzByteArray.Destroy;
-begin
-  // TODO 3 -cCHECK: cancella l'array, non sono sicuro che serva
-  SetLength(FArray,0);
-end;
-
-procedure TSqzByteArray.Clear;
-begin
-  // TODO 1 -cFIXME : togliere costante hardcoded
-  FSize := 8;
-  FLength := 0;
-  SetLength(FArray,FSize);
-end;
-
-procedure TSqzByteArray.AddByte(AByte: Byte);
-begin
-  if FLength = FSize then begin
-    FSize := FSize * 2;
-    SetLength(Farray,FSize);
-  end;
-  FArray[FLength] := AByte;
-  Inc(FLength);
-end;
-
-procedure TSqzByteArray.AddByteArray(AArray: array of Byte; ALen: Integer);
-var
-  I: Integer;
-begin
-  for I := 0 to ALen - 1 do
-    AddByte(AArray[I]);
-end;
 {$ENDREGION}
 
 {$REGION 'TSqzMsgSet'}
@@ -255,9 +219,8 @@ begin
 
 	LPos := Pos(kSETStr,AStr);
 	if LPos = 0 then begin
-		TDbgLogger.Instance.LogError('SQZLOG parseSet Fail');
-		// TODO -cFIXME  2 : mettere eccezione + specifica
-		raise Exception.Create('parseSet fail');
+		TDbgLogger.Instance.LogError('SQZLOG: parseSet Fail');
+		raise ESqzLogSetParseError.Create;
 	end;
 
 	AStr := Trim(RightStr(AStr,Length(AStr)-(LPos+Length(kSETStr))));
@@ -286,12 +249,10 @@ begin
 	LPos := Pos(kMSGStr,AStr);
 
 	if LPos = 0 then begin
-		TDbgLogger.Instance.LogError('SQZLOG parseMsg Fail');
-		// TODO -cFIXME  2 : mettere eccezione + specifica
-		raise Exception.Create('parseMsg fail');
+		TDbgLogger.Instance.LogError('SQZLOG: parseMsg Fail');
+		raise ESqzLogSetParseError.Create;
 	end;
 
-  // TODO 1 -cFIXME : verificare  la stringa risultante
 	FAuxCommaList.CommaText := Trim(RightStr(AStr,Length(AStr)-(LPos+Length(kMSGStr))));
 	LEntry := nil;
 	try
@@ -400,9 +361,7 @@ begin
 			Exit(LSet);
   end;
 
-  // TODO 1 -cFIXME : creare eccezione
-	//raise ESetNotFound.Create(ASetId);
-  raise Exception.Create(Format('ESetNotFound %d',[ASetId]));
+  raise ESqzSetNotFound.Create(ASetId);
 end;
 {$ENDREGION}
 
@@ -487,9 +446,9 @@ begin
 			Exit(FFrame.Valid);
 		end;
 	except
-    // TODO 1 -cFIXME : creare eccezione
-    //on E: ESetNotFound do
-    on Exception do
+    on E: ESqzSetNotFound do
+      TDbgLogger.Instance.LogError('SQZLOG: Set %d not found',[E.SetId]);
+    on ESqzLogException do
 		  TDbgLogger.Instance.LogException('SQZLOG: TSqzLogHandler.ProcessSqzData');
 	end;
 
@@ -521,7 +480,9 @@ end;
 procedure TSqzLogNetHandler.print(ANodeId: Integer; AClass: TSqzLogClass; ATitle: string);
 var
 	I: Integer;
+{$IFDEF USE_PRINTER_OBJ}
 	LPrinter: TSqzLogPrinter;
+{$ENDIF}
 begin
 {$IFDEF USE_PRINTER_OBJ}
 	for I := 0 to FLogPrinters.Count - 1 do begin
@@ -638,12 +599,6 @@ begin
 			Result := true;
 	end;
 end;
-
-function TSqzFrame.getNextParam(AParam: TSqzLogParam): Boolean;
-begin
-  // TODO 1 -cFUNCTION : function TSqzFrame.getNextParam(AParam: TSqzLogParam): Boolean;
-end;
-
 // ----------------------------------------------------------------------------
 
 function TSqzFrame.getText(): string;
@@ -790,18 +745,15 @@ begin
 	TDbgLogger.Instance.LogDebug('SQZLOG: AddFrameData size=%d',[ALength]);
 
 	for i := 0 to ALength - 1 do begin
-    // TODO 1 -cCHECK : verificare cast
 		TDbgLogger.Instance.LogDebug('SQZLOG: frame data d[%d]=0x%.2X s=%d',[i,Integer(AData[i]),FStato]);
 		case FStato of
 			0: begin
-          // TODO 1 -cCHECK : verificare cast
-          FMsgCode := Integer(AData[i]);
+          FMsgCode := AData[i];
           FStato := 1;
 				end;
 
 			1: begin
-          // TODO 1 -cCHECK : verificare cast
-          FParSpec := Integer(AData[i]);
+          FParSpec := AData[i];
           FStato := 2;
           FParCount := 0;
 				end;
@@ -820,7 +772,7 @@ begin
 				case FTempPar.spType of
 					lpString: begin
               if AData[i] = 0 then begin
-                // TODO 1 -cCHECK : verificare cast
+                // TODO 2 -cCHECK : verificare cast
                 FTempPar.spDataString := string(FStringBuffer[FParIdx]);
                 complete := true;
                 TDbgLogger.Instance.LogDebug('SQZLOG: ParDump type <%s>',[FTempPar.spDataString]);
@@ -833,8 +785,7 @@ begin
 						end;
 
 					lpByte: begin
-              // TODO 1 -cCHECK : verificare cast
-              FTempPar.spDataInt := Integer(AData[i]);
+              FTempPar.spDataInt := AData[i];
               complete := true;
               TDbgLogger.Instance.LogDebug('SQZLOG: ParDump data B:0x%.2X',[FTempPar.spDataInt]);
 						end;
@@ -873,6 +824,7 @@ begin
       end; { case 3 }
     end; { case }
   end; { for }
+  TDbgLogger.Instance.LogDebug('SQZLOG: end frame data process');
 end; { procedure }
 
 procedure TSqzFrame.Close;

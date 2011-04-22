@@ -8,8 +8,7 @@ uses
   UNIAPI in 'UNIAPI.pas',
   UDbgLogger in 'UDbgLogger.pas',
   UCanMsg in 'UCanMsg.pas',
-  UFileList in 'UFileList.pas',
-  USqzLogPrint in 'USqzLogPrint.pas';
+  UFileList in 'UFileList.pas';
 
 {$R *.res}
 
