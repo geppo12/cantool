@@ -12,7 +12,7 @@
 #pragma resource "*.dfm"
 
 #ifdef USE_SMARTINSPECT
-#pragma link "SmartInspectD2007.lib"
+#pragma link "SmartInspectDXE.lib"
 #pragma link "dbrtl.lib"
 #endif
 
@@ -32,12 +32,12 @@ AnsiString __fastcall TfmMain::readVersion() {
    int pos, buildNewVal,buildOldVal,buildVal;
    void *pBuffer;
    unsigned int buflen,i,pt;
-   VersionSize = GetFileVersionInfoSize(Application->ExeName.c_str(), &VersionHandle);
+   VersionSize = GetFileVersionInfoSize(AnsiString(Application->ExeName).c_str(), &VersionHandle);
 
    if (VersionSize)
    {
 	  pBuffer = (char *)malloc(VersionSize);
-	  if (GetFileVersionInfo(Application->ExeName.c_str(),
+	  if (GetFileVersionInfo(AnsiString(Application->ExeName).c_str(),
 			VersionHandle,VersionSize,pBuffer))
 	  {
 		 char *b;
@@ -178,7 +178,7 @@ void __fastcall TfmMain::loadProject(AnsiString AName) {
 
 	// rimuovo le entry marcate
 	for (i = FFullName->Count-1; i >= 0; i--) {
-		if (FFullName->Strings[i].AnsiCompare("*** DELETED") == 0)
+		if (AnsiString(FFullName->Strings[i]).AnsiCompare("*** DELETED") == 0)
 			FFullName->Delete(i);
 	}
 }
@@ -298,7 +298,7 @@ void __fastcall TfmMain::btnAddFilesClick(TObject *Sender)
 	OpenDialog->InitialDir = ExtractFilePath(Application->ExeName);
 
 	if (OpenDialog->Execute()) {
-		if (ExtractFileExt(OpenDialog->FileName).AnsiCompareIC("."kProjectExtStr)==0) {
+		if (AnsiString(ExtractFileExt(OpenDialog->FileName)).AnsiCompareIC("."kProjectExtStr)==0) {
 			clear();
 			loadProject(OpenDialog->FileName);
 			eSetDir->Text = ExtractFilePath(OpenDialog->FileName);

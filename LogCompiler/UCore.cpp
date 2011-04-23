@@ -23,7 +23,7 @@
 #define kSETStr	   "SET %d"
 
 
-AnsiString __fastcall TLogMsg::ToString() {
+String __fastcall TLogMsg::ToString() {
 	AnsiString str;
 	AnsiString parSpec = ParSpec;
 

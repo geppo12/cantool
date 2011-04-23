@@ -38,7 +38,7 @@ class TLogMsg : public TObject {
 	__fastcall TLogMsg(int ACode, AnsiString AParSpec, AnsiString ATitle, int ACrc) :
 		FLogCode(ACode), FParSpec(AParSpec), FLogTitle(ATitle), FCrc(ACrc) {}
 
-	AnsiString __fastcall ToString();
+	virtual String  __fastcall ToString();
 
 	__property int LogCode = { read=FLogCode };
 	__property AnsiString LogTitle = { read=FLogTitle };
