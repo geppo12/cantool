@@ -8,6 +8,12 @@ uses
   Classes;
 
 {.$DEFINE USE_PRINTER_OBJ}
+
+const
+
+  kSqzLogStartFrame = $40;
+  kSqzLogMoreData   = $80;
+  kSqzLogTagPresent = $08;
 type
 
 { exceptions }
@@ -124,16 +130,16 @@ type
 
   TSqzLogHandler = class
     private
+    FProtoV2: Boolean;
     FNodeId: Integer;
     FMsgSets: TSqzMsgSetList;
     FFrame: TSqzFrame;
     FUnitCount: Integer;
-    FSyncLost: Boolean;
 
     function checkUnitSeq(AData: Byte): Boolean;
 
     public
-    constructor Create(ANodeId: Integer; AMsgSets: TSqzMsgSetList);
+    constructor Create(ANodeId: Integer; AMsgSets: TSqzMsgSetList; AProtoV2: Boolean);
     destructor Destroy; override;
     function ProcessSqzData(const AData: array of Byte; const ASize: Integer):
         Boolean;
@@ -158,6 +164,7 @@ type
 
   TSqzLogNetHandler = class
     private
+    FProtoV2: Boolean;
     FLogHandlers: TObjectList;
 {$IFDEF USE_PRINTER_OBJ}
     FLogPrinters: TSqzLogPrinterList;
@@ -169,7 +176,7 @@ type
     function findNode(ANodeId: Integer): TSqzLogHandler;
     procedure print(ANodeId: Integer; AClass: TSqzLogClass; ATitle: string);
     public
-    constructor Create;
+    constructor Create(AProtoV2: Boolean = false);
     destructor Destroy; override;
     procedure AddNode(ANodeId: Integer);
 {$IFDEF USE_PRINTER_OBJ}
@@ -177,8 +184,6 @@ type
 {$ENDIF}
     procedure ProcessSqzData(const ANode: Integer; const AData: array of Byte; ASize: Integer);
     procedure AddMsgSet(AFileName: string);
-    // TODO 2 -cFEATURE : 	implementare procedure SetProtoV2(bool AProtoV2)
-    //procedure SetProtoV2(AProtoV2: Boolean); {}
     procedure ClearSets();
 {$IFNDEF USE_PRINTER_OBJ}
     property OnPrint: TSqzPrintEvent read FOnPrint write FOnPrint;
@@ -245,7 +250,6 @@ var
 	LEntry: TSqzMsgEntry;
 begin
 	TDbgLogger.Instance.LogDebug('SQZLOG: parse set <%s>',[AStr]);
-  Result := nil;
 	LPos := Pos(kMSGStr,AStr);
 
 	if LPos = 0 then begin
@@ -368,26 +372,34 @@ end;
 {$REGION 'TSqzLogHandler'}
 // verifica dello stat frame e
 function TSqzLogHandler.checkUnitSeq(AData: Byte): Boolean;
+var
+  LCountMask: Cardinal;
 begin
-	Result := true;
+	Result := false;
 
-	if (AData and $40) <> 0 then begin
-		FSyncLost := false;
-		FUnitCount := (AData+1) and  $0f;
+  // in proto V2.0 bit 3 is flag for tag presence
+  if FProtoV2 then
+    LCountMask := 7
+  else
+    LCountmask := $F;
+
+	if (AData and kSqzLogStartFrame) <> 0 then begin
+    // if is a start frame I not check sequence counter
+		Result := true;
+		FUnitCount := (AData+1) and LCountMask;
 	end else begin
-		if FUnitCount <> (AData and $0f) then
-			FSyncLost := true
+    // is not a start frame check sequence counter
+		if FUnitCount <> (AData and LCountMask) then
+      Result := false
 		else
-			FUnitCount := ((FUnitCount + 1) and $0F);
-
-    if FSyncLost then
-      Result := false;
+			FUnitCount := ((FUnitCount + 1) and LCountMask);
   end;
 end;
 // ----------------------------------------------------------------------------
 
-constructor TSqzLogHandler.Create(ANodeId: Integer; AMsgSets: TSqzMsgSetList);
+constructor TSqzLogHandler.Create(ANodeId: Integer; AMsgSets: TSqzMsgSetList; AProtoV2: Boolean);
 begin
+  FProtoV2 := AProtoV2;
   FNodeId := ANodeId;
   FMsgSets := AMsgSets;
   FFrame := TSqzFrame.Create;
@@ -422,7 +434,7 @@ begin
 
 	try
 		// verifico start frame
-		if (AData[0] and $40) <> 0 then begin
+		if (AData[0] and kSqzLogStartFrame) <> 0 then begin
 			// se è un nuovo frame lo inizializzo
 			// nota nel primo msg l'header è di due byte
 			LSetId := ((AData[0] shr 4) and 3) or AData[1];
@@ -441,7 +453,7 @@ begin
     FFrame.AddFrameData(LArray,ASize-LDataShift);
 
 		// se il frame è terminato
-		if (AData[0] and $80) = 0 then begin
+		if (AData[0] and kSqzLogMoreData) = 0 then begin
 			FFrame.Close;
 			Exit(FFrame.Valid);
 		end;
@@ -478,9 +490,9 @@ end;
 // ----------------------------------------------------------------------------
 
 procedure TSqzLogNetHandler.print(ANodeId: Integer; AClass: TSqzLogClass; ATitle: string);
+{$IFDEF USE_PRINTER_OBJ}
 var
 	I: Integer;
-{$IFDEF USE_PRINTER_OBJ}
 	LPrinter: TSqzLogPrinter;
 {$ENDIF}
 begin
@@ -496,13 +508,14 @@ begin
 end;
 // ----------------------------------------------------------------------------
 
-constructor TSqzLogNetHandler.Create;
+constructor TSqzLogNetHandler.Create(AProtoV2: Boolean);
 begin
 {$IFDEF USE_PRINTER_OBJ}
 	FLogPrinters := TSqzLogPrinterList.Create;
 {$ENDIF}
 	FLogHandlers := TObjectList.Create;
 	FMsgSets := TSqzMsgSetList.Create;
+  FProtoV2 := AProtoV2;
 end;
 // ----------------------------------------------------------------------------
 
@@ -519,7 +532,7 @@ end;
 procedure TSqzLogNetHandler.AddNode(ANodeId: Integer);
 begin
 	if findNode(ANodeId) = nil then
-		FLogHandlers.Add(TSqzLogHandler.Create(ANodeId,FMsgSets));
+		FLogHandlers.Add(TSqzLogHandler.Create(ANodeId,FMsgSets,FProtoV2));
 end;
 // ----------------------------------------------------------------------------
 {$IFDEF USE_PRINTER_OBJ}
@@ -533,13 +546,12 @@ end;
 procedure TSqzLogNetHandler.ProcessSqzData(const ANode: Integer; const AData:
     array of Byte; ASize: Integer);
 var
-	LNodeId: Integer;
 	LStr: string;
 	LHandler: TSqzLogHandler;
 begin
 	LHandler := findNode(ANode);
 	if LHandler = nil then begin
-		LHandler := TSqzLogHandler.Create(ANode,FMsgSets);
+		LHandler := TSqzLogHandler.Create(ANode,FMsgSets,FProtoV2);
 		FLogHandlers.Add(LHandler);
 	end;
 
@@ -745,7 +757,7 @@ begin
 	TDbgLogger.Instance.LogDebug('SQZLOG: AddFrameData size=%d',[ALength]);
 
 	for i := 0 to ALength - 1 do begin
-		TDbgLogger.Instance.LogDebug('SQZLOG: frame data d[%d]=0x%.2X s=%d',[i,Integer(AData[i]),FStato]);
+		TDbgLogger.Instance.LogDebug('SQZLOG: frame data d[%d]=0x%.2X s=%d',[i,Cardinal(AData[i]),FStato]);
 		case FStato of
 			0: begin
           FMsgCode := AData[i];
@@ -792,7 +804,7 @@ begin
 
 					lpWord:
 						if FParIdx > 0 then begin
-							FTempPar.spDataInt := FTempPar.spDataInt or (Integer(AData[i]) shl 8);
+							FTempPar.spDataInt := FTempPar.spDataInt or (Cardinal(AData[i]) shl 8);
 							complete := true;
 							TDbgLogger.Instance.LogDebug('SQZLOG: ParDump data W:0x%.4X',[FTempPar.spDataInt]);
 						end else begin
@@ -804,7 +816,7 @@ begin
 						if FParIdx = 0 then
 							FTempPar.spDataInt := AData[i]
 						else
-							FTempPar.spDataInt := FTempPar.spDataInt or (Integer(AData[i]) shl (FParIdx*8));
+							FTempPar.spDataInt := FTempPar.spDataInt or (Cardinal(AData[i]) shl (FParIdx*8));
 
             Inc(FParIdx);
 						if FParIdx = 4 then begin
