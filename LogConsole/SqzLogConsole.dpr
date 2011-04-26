@@ -6,10 +6,10 @@ uses
   USqzLogCore in 'USqzLogCore.pas',
   UNICanLink in 'UNICanLink.pas',
   UNIAPI in 'UNIAPI.pas',
-  UDbgLogger in 'UDbgLogger.pas',
   UCanMsg in 'UCanMsg.pas',
   UFileList in 'UFileList.pas',
-  UFileVersion in 'UFileVersion.pas';
+  UDbgLogger in '..\Common\UDbgLogger.pas',
+  UFileVersion in '..\Common\UFileVersion.pas';
 
 {$R *.res}
 

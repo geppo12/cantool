@@ -3,10 +3,10 @@ program LogCompiler;
 uses
   Forms,
   UFmMain in 'UFmMain.pas' {fmMain},
-  UDbgLogger in 'UDbgLogger.pas',
-  UFileVersion in 'UFileVersion.pas',
   UCore in 'UCore.pas',
-  ULogOptions in 'ULogOptions.pas';
+  ULogOptions in 'ULogOptions.pas',
+  UDbgLogger in '..\Common\UDbgLogger.pas',
+  UFileVersion in '..\Common\UFileVersion.pas';
 
 {$R *.res}
 

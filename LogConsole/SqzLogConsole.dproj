@@ -24,6 +24,7 @@
 			<Base>true</Base>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base)'!=''">
+			<DCC_Define>USE_SMARTINSPECT;$(DCC_Define)</DCC_Define>
 			<DCC_ImageBase>00400000</DCC_ImageBase>
 			<DCC_DcuOutput>.\$(Config)\$(Platform)</DCC_DcuOutput>
 			<DCC_UnitAlias>WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;$(DCC_UnitAlias)</DCC_UnitAlias>
@@ -37,7 +38,7 @@
 		<PropertyGroup Condition="'$(Cfg_1)'!=''">
 			<DCC_Hints>false</DCC_Hints>
 			<BRCC_Defines>USE_SMARTINSPECT;$(BRCC_Defines)</BRCC_Defines>
-			<DCC_Define>DEBUG;USE_SMARTINSPECT;$(DCC_Define)</DCC_Define>
+			<DCC_Define>DEBUG;NO_SIC_NEEDED;$(DCC_Define)</DCC_Define>
 			<DCC_Optimize>false</DCC_Optimize>
 			<DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
 		</PropertyGroup>
@@ -57,10 +58,10 @@
 			<DCCReference Include="USqzLogCore.pas"/>
 			<DCCReference Include="UNICanLink.pas"/>
 			<DCCReference Include="UNIAPI.pas"/>
-			<DCCReference Include="UDbgLogger.pas"/>
 			<DCCReference Include="UCanMsg.pas"/>
 			<DCCReference Include="UFileList.pas"/>
-			<DCCReference Include="UFileVersion.pas"/>
+			<DCCReference Include="..\Common\UDbgLogger.pas"/>
+			<DCCReference Include="..\Common\UFileVersion.pas"/>
 			<None Include="DVersions.inc"/>
 			<BuildConfiguration Include="Release">
 				<Key>Cfg_2</Key>
@@ -87,7 +88,7 @@
 						<VersionInfo Name="MajorVer">0</VersionInfo>
 						<VersionInfo Name="MinorVer">1</VersionInfo>
 						<VersionInfo Name="Release">0</VersionInfo>
-						<VersionInfo Name="Build">7</VersionInfo>
+						<VersionInfo Name="Build">9</VersionInfo>
 						<VersionInfo Name="Debug">False</VersionInfo>
 						<VersionInfo Name="PreRelease">False</VersionInfo>
 						<VersionInfo Name="Special">False</VersionInfo>
@@ -99,7 +100,7 @@
 					<VersionInfoKeys>
 						<VersionInfoKeys Name="CompanyName"/>
 						<VersionInfoKeys Name="FileDescription"/>
-						<VersionInfoKeys Name="FileVersion">0.1.0.7</VersionInfoKeys>
+						<VersionInfoKeys Name="FileVersion">0.1.0.9</VersionInfoKeys>
 						<VersionInfoKeys Name="InternalName"/>
 						<VersionInfoKeys Name="LegalCopyright"/>
 						<VersionInfoKeys Name="LegalTrademarks"/>
