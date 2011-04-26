@@ -1,3 +1,6 @@
+v1.1 Build 40
+NEW Porting to delphi XE
+
 v1.0.30
 NEW aggiunto salvataggio delle opzioni e del msgset nel file di progetto
 

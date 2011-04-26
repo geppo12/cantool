@@ -1,13 +1,14 @@
 ﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 		<PropertyGroup>
-			<ProjectGuid>{e10fb11c-4245-496d-b4da-5d383950b0c1}</ProjectGuid>
-			<MainSource>LogCompiler.cpp</MainSource>
-			<Config Condition="'$(Config)'==''">Debug</Config>
+			<ProjectGuid>{4B947EE6-B1FB-4224-A1CF-89258A58EDC2}</ProjectGuid>
+			<MainSource>LogCompiler.dpr</MainSource>
 			<ProjectVersion>12.3</ProjectVersion>
 			<Base>True</Base>
+			<Config Condition="'$(Config)'==''">Debug</Config>
 			<Platform>Win32</Platform>
 			<AppType>Application</AppType>
 			<FrameworkType>VCL</FrameworkType>
+			<DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
 			<Base>true</Base>
@@ -23,217 +24,40 @@
 			<Base>true</Base>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base)'!=''">
-			<BCC_Defines>EUREKALOG;$(BCC_Defines)</BCC_Defines>
-			<ILINK_LibraryPath>C:\Programmi\EurekaLog 6\Cbuilder11\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
-			<LinkPackageStatics>rtl.lib;vcl.lib</LinkPackageStatics>
-			<DCC_UnitAlias>WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;$(DCC_UnitAlias)</DCC_UnitAlias>
-			<BCC_OptimizeForSpeed>true</BCC_OptimizeForSpeed>
-			<OutputExt>exe</OutputExt>
-			<Defines>NO_STRICT</Defines>
-			<DCC_CBuilderOutput>JPHNE</DCC_CBuilderOutput>
-			<DynamicRTL>true</DynamicRTL>
-			<ILINK_ObjectSearchPath>..\..\..\ProgettiRcs\futurware\code\LogCompiler\Src</ILINK_ObjectSearchPath>
-			<ProjectType>CppVCLApplication</ProjectType>
-			<PackageImports>rtl.bpi;vcl.bpi</PackageImports>
-			<BCC_wpar>false</BCC_wpar>
-			<IncludePath>$(BDS)\include;$(BDS)\include\dinkumware;$(IncludePath)</IncludePath>
-			<AllPackageLibs>rtl.lib;vcl.lib</AllPackageLibs>
-			<Multithreaded>true</Multithreaded>
+			<DCC_Define>USE_SMARTINSPECT;NO_SIC_NEEDED;$(DCC_Define)</DCC_Define>
+			<DCC_ImageBase>00400000</DCC_ImageBase>
+			<DCC_DcuOutput>.\$(Config)\$(Platform)</DCC_DcuOutput>
+			<DCC_UnitAlias>WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;$(DCC_UnitAlias)</DCC_UnitAlias>
+			<DCC_ExeOutput>.\$(Config)\$(Platform)</DCC_ExeOutput>
+			<DCC_E>false</DCC_E>
+			<DCC_N>false</DCC_N>
+			<DCC_S>false</DCC_S>
+			<DCC_F>false</DCC_F>
+			<DCC_K>false</DCC_K>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1)'!=''">
-			<DCC_Optimize>false</DCC_Optimize>
-			<BCC_OptimizeForSpeed>false</BCC_OptimizeForSpeed>
-			<Defines>_DEBUG;USE_SMARTINSPECT;$(Defines)</Defines>
-			<DCC_DebugInfoInExe>true</DCC_DebugInfoInExe>
-			<DynamicRTL>false</DynamicRTL>
-			<ILINK_FullDebugInfo>true</ILINK_FullDebugInfo>
-			<BCC_InlineFunctionExpansion>false</BCC_InlineFunctionExpansion>
-			<ILINK_DisableIncrementalLinking>true</ILINK_DisableIncrementalLinking>
-			<BCC_UseRegisterVariables>None</BCC_UseRegisterVariables>
+			<DCC_Hints>false</DCC_Hints>
 			<DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
-			<BCC_DebugLineNumbers>true</BCC_DebugLineNumbers>
-			<ILINK_Verbose>true</ILINK_Verbose>
-			<IntermediateOutputDir>Debug</IntermediateOutputDir>
-			<TASM_DisplaySourceLines>true</TASM_DisplaySourceLines>
-			<BCC_StackFrames>true</BCC_StackFrames>
-			<BCC_DisableOptimizations>true</BCC_DisableOptimizations>
-			<BCC_Defines>EUREKALOG;EUREKALOG_VER6</BCC_Defines>
-			<TASM_Debugging>Full</TASM_Debugging>
-			<BCC_SourceDebuggingOn>true</BCC_SourceDebuggingOn>
+			<DCC_Optimize>false</DCC_Optimize>
+			<DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_2)'!=''">
-			<Defines>NDEBUG;$(Defines)</Defines>
-			<IntermediateOutputDir>Release</IntermediateOutputDir>
-			<ILINK_LibraryPath>$(BDS)\lib\release;$(ILINK_LibraryPath)</ILINK_LibraryPath>
-			<TASM_Debugging>None</TASM_Debugging>
+			<DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
+			<DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
+			<DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
+			<DCC_DebugInformation>false</DCC_DebugInformation>
 		</PropertyGroup>
-		<ProjectExtensions>
-			<Borland.Personality>CPlusPlusBuilder.Personality.12</Borland.Personality>
-			<Borland.ProjectType>CppVCLApplication</Borland.ProjectType>
-			<BorlandProject>
-				<CPlusPlusBuilder.Personality>
-					<VersionInfo>
-						<VersionInfo Name="IncludeVerInfo">True</VersionInfo>
-						<VersionInfo Name="AutoIncBuild">True</VersionInfo>
-						<VersionInfo Name="MajorVer">1</VersionInfo>
-						<VersionInfo Name="MinorVer">1</VersionInfo>
-						<VersionInfo Name="Release">0</VersionInfo>
-						<VersionInfo Name="Build">31</VersionInfo>
-						<VersionInfo Name="Debug">False</VersionInfo>
-						<VersionInfo Name="PreRelease">False</VersionInfo>
-						<VersionInfo Name="Special">False</VersionInfo>
-						<VersionInfo Name="Private">False</VersionInfo>
-						<VersionInfo Name="DLL">False</VersionInfo>
-						<VersionInfo Name="Locale">1040</VersionInfo>
-						<VersionInfo Name="CodePage">1252</VersionInfo>
-					</VersionInfo>
-					<VersionInfoKeys>
-						<VersionInfoKeys Name="CompanyName"/>
-						<VersionInfoKeys Name="FileDescription"/>
-						<VersionInfoKeys Name="FileVersion">1.1.0.31</VersionInfoKeys>
-						<VersionInfoKeys Name="InternalName"/>
-						<VersionInfoKeys Name="LegalCopyright"/>
-						<VersionInfoKeys Name="LegalTrademarks"/>
-						<VersionInfoKeys Name="OriginalFilename"/>
-						<VersionInfoKeys Name="ProductName"/>
-						<VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys>
-						<VersionInfoKeys Name="Comments"/>
-					</VersionInfoKeys>
-					<Debugging>
-						<Debugging Name="DebugSourceDirs"/>
-					</Debugging>
-					<Parameters>
-						<Parameters Name="RemoteHost"/>
-						<Parameters Name="RemotePath"/>
-						<Parameters Name="RemoteParams"/>
-						<Parameters Name="RemoteLauncher"/>
-						<Parameters Name="UseRemoteLauncher">False</Parameters>
-						<Parameters Name="RemoteCWD"/>
-						<Parameters Name="RemoteDebug">False</Parameters>
-					</Parameters>
-					<Excluded_Packages>
-						<Excluded_Packages Name="$(BDS)\lib\tmsa32\vacomm2007.bpl">TMS Async32</Excluded_Packages>
-						<Excluded_Packages Name="$(BDSBIN)\bcboffice2k100.bpl">CodeGear C++Builder Office 2000 Servers Package</Excluded_Packages>
-						<Excluded_Packages Name="$(BDSBIN)\bcbofficexp100.bpl">CodeGear C++Builder Office XP Servers Package</Excluded_Packages>
-						<Excluded_Packages Name="$(BDSBIN)\dcloffice2k100.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
-						<Excluded_Packages Name="$(BDSBIN)\dclofficexp100.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
-					</Excluded_Packages>
-					<Linker>
-						<Linker Name="LibPrefix"/>
-						<Linker Name="LibSuffix"/>
-						<Linker Name="LibVersion"/>
-					</Linker>
-					<ProjectProperties>
-						<ProjectProperties Name="AutoShowDeps">False</ProjectProperties>
-						<ProjectProperties Name="ManagePaths">True</ProjectProperties>
-						<ProjectProperties Name="VerifyPackages">True</ProjectProperties>
-					</ProjectProperties>
-					<Source>
-						<Source Name="MainSource">LogCompiler.cpp</Source>
-					</Source>
-					<HistoryLists_hlIncludePath>
-						<HistoryLists_hlIncludePath Name="Count">2</HistoryLists_hlIncludePath>
-						<HistoryLists_hlIncludePath Name="Item0">$(BDS)\include;$(BDS)\include\dinkumware;$(BDS)\include\vcl;$(BDS)\include\TMSA32</HistoryLists_hlIncludePath>
-						<HistoryLists_hlIncludePath Name="Item1">$(BDS)\include;$(BDS)\include\dinkumware;$(BDS)\include\vcl;$(BDS)\include\TMSA32;..\..\..\ProgettiRcs\futurware\code\LogCompiler\Src</HistoryLists_hlIncludePath>
-					</HistoryLists_hlIncludePath>
-					<HistoryLists_hlILINK_LibraryPath>
-						<HistoryLists_hlILINK_LibraryPath Name="Count">1</HistoryLists_hlILINK_LibraryPath>
-						<HistoryLists_hlILINK_LibraryPath Name="Item0">$(BDS)\lib\debug;C:\Programmi\EurekaLog 6\CBuilder11;$(BDS)\lib;$(BDS)\lib\obj;$(BDS)\lib\psdk;$(BDS)\lib\TMSA32;C:\Programmi\CodeGear\RAD Studio\5.0\lib\TMSA32</HistoryLists_hlILINK_LibraryPath>
-					</HistoryLists_hlILINK_LibraryPath>
-					<HistoryLists_hlDefines>
-						<HistoryLists_hlDefines Name="Count">1</HistoryLists_hlDefines>
-						<HistoryLists_hlDefines Name="Item0">_DEBUG;USE_SMARTINSPECT;NO_STRICT</HistoryLists_hlDefines>
-					</HistoryLists_hlDefines>
-					<HistoryLists_hlILINK_MaxErrors>
-						<HistoryLists_hlILINK_MaxErrors Name="Count">1</HistoryLists_hlILINK_MaxErrors>
-						<HistoryLists_hlILINK_MaxErrors Name="Item0">0</HistoryLists_hlILINK_MaxErrors>
-					</HistoryLists_hlILINK_MaxErrors>
-					<HistoryLists_hlILINK_FileAlignment>
-						<HistoryLists_hlILINK_FileAlignment Name="Count">1</HistoryLists_hlILINK_FileAlignment>
-						<HistoryLists_hlILINK_FileAlignment Name="Item0">0x200</HistoryLists_hlILINK_FileAlignment>
-					</HistoryLists_hlILINK_FileAlignment>
-					<HistoryLists_hlILINK_ObjectAlignment>
-						<HistoryLists_hlILINK_ObjectAlignment Name="Count">1</HistoryLists_hlILINK_ObjectAlignment>
-						<HistoryLists_hlILINK_ObjectAlignment Name="Item0">4096</HistoryLists_hlILINK_ObjectAlignment>
-					</HistoryLists_hlILINK_ObjectAlignment>
-					<HistoryLists_hlIntermediateOutputDir>
-						<HistoryLists_hlIntermediateOutputDir Name="Count">1</HistoryLists_hlIntermediateOutputDir>
-						<HistoryLists_hlIntermediateOutputDir Name="Item0">Debug</HistoryLists_hlIntermediateOutputDir>
-					</HistoryLists_hlIntermediateOutputDir>
-					<HistoryLists_hlILINK_BaseAddress>
-						<HistoryLists_hlILINK_BaseAddress Name="Count">1</HistoryLists_hlILINK_BaseAddress>
-						<HistoryLists_hlILINK_BaseAddress Name="Item0">0x00400000</HistoryLists_hlILINK_BaseAddress>
-					</HistoryLists_hlILINK_BaseAddress>
-					<HistoryLists_hlILINK_HeapCommitSize>
-						<HistoryLists_hlILINK_HeapCommitSize Name="Count">1</HistoryLists_hlILINK_HeapCommitSize>
-						<HistoryLists_hlILINK_HeapCommitSize Name="Item0">0x00001000</HistoryLists_hlILINK_HeapCommitSize>
-					</HistoryLists_hlILINK_HeapCommitSize>
-					<HistoryLists_hlILINK_HeapReserveSize>
-						<HistoryLists_hlILINK_HeapReserveSize Name="Count">1</HistoryLists_hlILINK_HeapReserveSize>
-						<HistoryLists_hlILINK_HeapReserveSize Name="Item0">0x00100000</HistoryLists_hlILINK_HeapReserveSize>
-					</HistoryLists_hlILINK_HeapReserveSize>
-					<HistoryLists_hlILINK_StackCommitSize>
-						<HistoryLists_hlILINK_StackCommitSize Name="Count">1</HistoryLists_hlILINK_StackCommitSize>
-						<HistoryLists_hlILINK_StackCommitSize Name="Item0">0x00002000</HistoryLists_hlILINK_StackCommitSize>
-					</HistoryLists_hlILINK_StackCommitSize>
-					<HistoryLists_hlILINK_StackReserveSize>
-						<HistoryLists_hlILINK_StackReserveSize Name="Count">1</HistoryLists_hlILINK_StackReserveSize>
-						<HistoryLists_hlILINK_StackReserveSize Name="Item0">0x00100000</HistoryLists_hlILINK_StackReserveSize>
-					</HistoryLists_hlILINK_StackReserveSize>
-					<HistoryLists_hlTASM_HashTableCapacity>
-						<HistoryLists_hlTASM_HashTableCapacity Name="Count">1</HistoryLists_hlTASM_HashTableCapacity>
-						<HistoryLists_hlTASM_HashTableCapacity Name="Item0">8192</HistoryLists_hlTASM_HashTableCapacity>
-					</HistoryLists_hlTASM_HashTableCapacity>
-					<HistoryLists_hlTASM_MaxSymbolLength>
-						<HistoryLists_hlTASM_MaxSymbolLength Name="Count">1</HistoryLists_hlTASM_MaxSymbolLength>
-						<HistoryLists_hlTASM_MaxSymbolLength Name="Item0">12</HistoryLists_hlTASM_MaxSymbolLength>
-					</HistoryLists_hlTASM_MaxSymbolLength>
-					<HistoryLists_hlTASM_Passes>
-						<HistoryLists_hlTASM_Passes Name="Count">1</HistoryLists_hlTASM_Passes>
-						<HistoryLists_hlTASM_Passes Name="Item0">1</HistoryLists_hlTASM_Passes>
-					</HistoryLists_hlTASM_Passes>
-					<HistoryLists_hlTASM_VersionId>
-						<HistoryLists_hlTASM_VersionId Name="Count">1</HistoryLists_hlTASM_VersionId>
-						<HistoryLists_hlTASM_VersionId Name="Item0">0</HistoryLists_hlTASM_VersionId>
-					</HistoryLists_hlTASM_VersionId>
-					<HistoryLists_hlDCC_Define>
-						<HistoryLists_hlDCC_Define Name="Count">1</HistoryLists_hlDCC_Define>
-						<HistoryLists_hlDCC_Define Name="Item0">DEBUG</HistoryLists_hlDCC_Define>
-					</HistoryLists_hlDCC_Define>
-				</CPlusPlusBuilder.Personality>
-				<Platforms>
-					<Platform value="Win32">True</Platform>
-				</Platforms>
-			</BorlandProject>
-			<ProjectFileVersion>12</ProjectFileVersion>
-		</ProjectExtensions>
 		<ItemGroup>
-			<None Include="history.txt">
-				<BuildOrder>5</BuildOrder>
-			</None>
-			<CppCompile Include="LogCompiler.cpp">
-				<BuildOrder>3</BuildOrder>
-			</CppCompile>
-			<ResFiles Include="LogCompiler.res">
-				<BuildOrder>0</BuildOrder>
-			</ResFiles>
-			<None Include="sidebug.h">
-				<BuildOrder>4</BuildOrder>
-			</None>
-			<CppCompile Include="UCore.cpp">
-				<DependentOn>UCore.h</DependentOn>
-				<BuildOrder>1</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="UFmMain.cpp">
+			<DelphiCompile Include="LogCompiler.dpr">
+				<MainSource>MainSource</MainSource>
+			</DelphiCompile>
+			<DCCReference Include="UFmMain.pas">
 				<Form>fmMain</Form>
-				<DependentOn>UFmMain.h</DependentOn>
-				<BuildOrder>2</BuildOrder>
-			</CppCompile>
-			<CppCompile Include="UOptions.cpp">
-				<DependentOn>UOptions.h</DependentOn>
-				<BuildOrder>6</BuildOrder>
-			</CppCompile>
-			<FormResources Include="UFmMain.dfm"/>
+			</DCCReference>
+			<DCCReference Include="UDbgLogger.pas"/>
+			<DCCReference Include="UFileVersion.pas"/>
+			<DCCReference Include="UCore.pas"/>
+			<DCCReference Include="ULogOptions.pas"/>
 			<BuildConfiguration Include="Release">
 				<Key>Cfg_2</Key>
 				<CfgParent>Base</CfgParent>
@@ -246,8 +70,50 @@
 				<CfgParent>Base</CfgParent>
 			</BuildConfiguration>
 		</ItemGroup>
-		<Import Condition="Exists('$(BDS)\Bin\CodeGear.Cpp.Targets')" Project="$(BDS)\Bin\CodeGear.Cpp.Targets"/>
+		<Import Condition="Exists('$(BDS)\Bin\CodeGear.Delphi.Targets')" Project="$(BDS)\Bin\CodeGear.Delphi.Targets"/>
 		<Import Condition="Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj')" Project="$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj"/>
+		<ProjectExtensions>
+			<Borland.Personality>Delphi.Personality.12</Borland.Personality>
+			<Borland.ProjectType/>
+			<BorlandProject>
+				<Delphi.Personality>
+					<VersionInfo>
+						<VersionInfo Name="IncludeVerInfo">True</VersionInfo>
+						<VersionInfo Name="AutoIncBuild">True</VersionInfo>
+						<VersionInfo Name="MajorVer">1</VersionInfo>
+						<VersionInfo Name="MinorVer">1</VersionInfo>
+						<VersionInfo Name="Release">0</VersionInfo>
+						<VersionInfo Name="Build">40</VersionInfo>
+						<VersionInfo Name="Debug">False</VersionInfo>
+						<VersionInfo Name="PreRelease">False</VersionInfo>
+						<VersionInfo Name="Special">False</VersionInfo>
+						<VersionInfo Name="Private">False</VersionInfo>
+						<VersionInfo Name="DLL">False</VersionInfo>
+						<VersionInfo Name="Locale">1040</VersionInfo>
+						<VersionInfo Name="CodePage">1252</VersionInfo>
+					</VersionInfo>
+					<VersionInfoKeys>
+						<VersionInfoKeys Name="CompanyName"/>
+						<VersionInfoKeys Name="FileDescription"/>
+						<VersionInfoKeys Name="FileVersion">1.1.0.40</VersionInfoKeys>
+						<VersionInfoKeys Name="InternalName"/>
+						<VersionInfoKeys Name="LegalCopyright"/>
+						<VersionInfoKeys Name="LegalTrademarks"/>
+						<VersionInfoKeys Name="OriginalFilename"/>
+						<VersionInfoKeys Name="ProductName"/>
+						<VersionInfoKeys Name="ProductVersion">1.1.0.0</VersionInfoKeys>
+						<VersionInfoKeys Name="Comments"/>
+					</VersionInfoKeys>
+					<Source>
+						<Source Name="MainSource">LogCompiler.dpr</Source>
+					</Source>
+				</Delphi.Personality>
+				<Platforms>
+					<Platform value="Win32">True</Platform>
+				</Platforms>
+			</BorlandProject>
+			<ProjectFileVersion>12</ProjectFileVersion>
+		</ProjectExtensions>
 	</Project>
 
 <!-- EurekaLog First Line
@@ -258,7 +124,7 @@ Activate Handle=1
 Save Log File=1
 Foreground Tab=0
 Freeze Activate=0
-Freeze Timeout=60
+Freeze Timeout=0
 SMTP From=eurekalog@email.com
 SMTP Host=
 SMTP Port=25
@@ -410,7 +276,7 @@ loGroupsSonLeaks=1
 loHideBorlandLeaks=1
 loFreeAllLeaks=1
 loCatchLeaksExceptions=1
-cfoReduceFileSize=0
+cfoReduceFileSize=1
 cfoCheckFileCorruption=0
 cfoUseEL7=0
 Count mtInformationMsgCaption=1
@@ -732,5 +598,5 @@ Count mtException_AntiFreeze=1
 mtException_AntiFreeze0="The application seems to be frozen."
 Count mtInvalidEmailMsg=1
 mtInvalidEmailMsg0="Invalid email."
-TextsCollection=
+TextsCollection=English
 EurekaLog Last Line -->
