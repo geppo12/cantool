@@ -34,7 +34,7 @@ uses
   UDbgLogger,
   UFileList,
   USqzLogCore,
-  UNICanLink;
+  UNICanLink, ComCtrls;
 
 type
   TfmMain = class(TForm)
@@ -42,13 +42,25 @@ type
     cbOpen: TCheckBox;
     Label1: TLabel;
     Timer1: TTimer;
+    pgControl: TPageControl;
+    Debug: TTabSheet;
+    CanLog: TTabSheet;
+    Options: TTabSheet;
     lbLogEntry: TListBox;
+    eSqzLogID: TEdit;
+    Label2: TLabel;
+    eNodeMask: TEdit;
+    Label3: TLabel;
+    eSqzLogMask: TEdit;
+    Label4: TLabel;
     procedure cbOpenClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure pgControlChange(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
     { Private declarations }
+    FOldPage: Integer;
     FLogger: TDbgLogger;
     FFileList: TFileNamesList;
     FLink: TNICanLink;
@@ -60,6 +72,13 @@ type
   public
     { Public declarations }
   end;
+
+  // menmonic for pages
+  TAppPages = (
+    pgDebug = 0,
+    pgCanLog = 1,
+    pgOptions = 2
+  );
 
 const
   kMsgSetSubpath = 'MsgSets';
@@ -120,8 +139,19 @@ begin
 
   Caption := Caption + VersionInformation;
 
-  FCanSqzFilter := $FFC000;
-  FCanSqzId     := $FE0000;
+  // we don't put try excpet because is starting value
+  // TODO 2 -cFEATURE : load/save options
+  FCanSqzFilter := StrToInt(eSqzLogMask.Text);
+  FCanSqzId     := StrToInt(eSqzLogID.Text);
+end;
+
+procedure TfmMain.pgControlChange(Sender: TObject);
+begin
+  if pgControl.TabIndex = Ord(pgCanLog) then begin
+    pgControl.TabIndex := FOldPage;
+    MessageDlg('''Canlog'' not implementated yet',mtError, [mbOk],0);
+  end else
+    FOldPage := pgControl.TabIndex;
 end;
 
 procedure TfmMain.Timer1Timer(Sender: TObject);
@@ -137,21 +167,6 @@ begin
         FSqzLogProcessor.ProcessSqzData(GetNode,ecmData,ecmLen);
       end;
   end;
-
-{ per debug. Simula un messaggio Egodom cmd 0xF della scheda 6
-  tenerlo per le prove di trasmissione 'write' }
-{$IFDEF WRITE_TEST}
-  LMsg.ecmID := $2F03C006;
-  LMsg.ecmLen := 6;
-  LMsg.ecmData[0] := 2;
-  LMsg.ecmData[1] := 0;
-  LMsg.ecmData[2] := 0;
-  LMsg.ecmData[3] := 0;
-  LMsg.ecmData[4] := 0;
-  LMsg.ecmData[5] := 0;
-  FLink.Write(LMsg);
-{$ENDIF}
-
   Timer1.Enabled := true;
 end;
 

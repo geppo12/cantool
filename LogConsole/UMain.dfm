@@ -3,7 +3,7 @@ object fmMain: TfmMain
   Top = 0
   Caption = 'Ninjeppo Can Tool v '
   ClientHeight = 467
-  ClientWidth = 766
+  ClientWidth = 774
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -15,7 +15,7 @@ object fmMain: TfmMain
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   DesignSize = (
-    766
+    774
     467)
   PixelsPerInch = 96
   TextHeight = 13
@@ -45,18 +45,87 @@ object fmMain: TfmMain
     TabOrder = 1
     OnClick = cbOpenClick
   end
-  object lbLogEntry: TListBox
-    Left = 16
-    Top = 16
-    Width = 737
-    Height = 417
-    ItemHeight = 13
+  object pgControl: TPageControl
+    Left = 8
+    Top = 8
+    Width = 758
+    Height = 424
+    ActivePage = Debug
+    Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 2
+    OnChange = pgControlChange
+    object Debug: TTabSheet
+      Caption = 'Debug'
+      object lbLogEntry: TListBox
+        Left = 0
+        Top = 0
+        Width = 750
+        Height = 396
+        Align = alClient
+        ItemHeight = 13
+        TabOrder = 0
+      end
+    end
+    object CanLog: TTabSheet
+      Caption = 'CanLog'
+      ImageIndex = 1
+    end
+    object Options: TTabSheet
+      Caption = 'Options'
+      ImageIndex = 2
+      ExplicitLeft = 8
+      ExplicitTop = 28
+      object Label2: TLabel
+        Left = 5
+        Top = 19
+        Width = 75
+        Height = 13
+        Caption = 'Squeeze Log ID'
+      end
+      object Label3: TLabel
+        Left = 5
+        Top = 107
+        Width = 52
+        Height = 13
+        Caption = 'Node Mask'
+      end
+      object Label4: TLabel
+        Left = 5
+        Top = 63
+        Width = 88
+        Height = 13
+        Caption = 'Squeeze Log Mask'
+      end
+      object eSqzLogID: TEdit
+        Left = 108
+        Top = 16
+        Width = 121
+        Height = 21
+        TabOrder = 0
+        Text = '0xFE0000'
+      end
+      object eNodeMask: TEdit
+        Left = 108
+        Top = 104
+        Width = 121
+        Height = 21
+        TabOrder = 1
+        Text = '0x3FFF'
+      end
+      object eSqzLogMask: TEdit
+        Left = 108
+        Top = 60
+        Width = 121
+        Height = 21
+        TabOrder = 2
+        Text = '0xFFC000'
+      end
+    end
   end
   object Timer1: TTimer
     Interval = 2000
     OnTimer = Timer1Timer
-    Left = 40
-    Top = 40
+    Left = 264
+    Top = 424
   end
 end
