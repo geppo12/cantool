@@ -137,21 +137,6 @@ begin
         FSqzLogProcessor.ProcessSqzData(GetNode,ecmData,ecmLen);
       end;
   end;
-
-{ per debug. Simula un messaggio Egodom cmd 0xF della scheda 6
-  tenerlo per le prove di trasmissione 'write' }
-{$IFDEF WRITE_TEST}
-  LMsg.ecmID := $2F03C006;
-  LMsg.ecmLen := 6;
-  LMsg.ecmData[0] := 2;
-  LMsg.ecmData[1] := 0;
-  LMsg.ecmData[2] := 0;
-  LMsg.ecmData[3] := 0;
-  LMsg.ecmData[4] := 0;
-  LMsg.ecmData[5] := 0;
-  FLink.Write(LMsg);
-{$ENDIF}
-
   Timer1.Enabled := true;
 end;
 
