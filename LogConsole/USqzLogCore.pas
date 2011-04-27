@@ -400,7 +400,7 @@ function TSqzLogHandler.checkUnitSeq(AData: Byte): Boolean;
 var
   LCountMask: Cardinal;
 begin
-	Result := false;
+	Result := true;
 
   // in proto V2.0 bit 3 is flag for tag presence
   if FProtoV2 then
@@ -408,17 +408,15 @@ begin
   else
     LCountmask := $F;
 
-	if (AData and kSqzLogStartFrame) <> 0 then begin
-    // if is a start frame I not check sequence counter
-		Result := true;
-		FUnitCount := (AData+1) and LCountMask;
-	end else begin
+	if (AData and kSqzLogStartFrame) = 0 then begin
     // is not a start frame check sequence counter
 		if FUnitCount <> (AData and LCountMask) then
       Result := false
 		else
 			FUnitCount := ((FUnitCount + 1) and LCountMask);
-  end;
+	end else
+    // if is a start frame I not check sequence counter, simply set it
+		FUnitCount := (AData+1) and LCountMask;
 end;
 // ----------------------------------------------------------------------------
 
