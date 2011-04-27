@@ -190,6 +190,7 @@ type
   TSqzLogNetHandler = class
     private
     FProtoV2: Boolean;
+    FNodeMask: Cardinal;
     FLogHandlers: TObjectList;
 {$IFDEF USE_PRINTER_OBJ}
     FLogPrinters: TSqzLogPrinterList;
@@ -198,6 +199,7 @@ type
 {$ENDIF}
     FMsgSets: TSqzMsgSetList;
 
+    function getNodeFromId(AMsgId: Cardinal): Integer;
     function findNode(ANodeId: Integer): TSqzLogHandler;
     procedure print(ANodeId: Integer; AClass: TSqzLogClass; ATitle: string);
     public
@@ -207,12 +209,14 @@ type
 {$IFDEF USE_PRINTER_OBJ}
     procedure AddPrinter(APrinter: TSqzLogPrinter);
 {$ENDIF}
-    procedure ProcessSqzData(const ANode: Integer; const AData: array of Byte; ASize: Integer);
+    procedure ProcessSqzData(const AId: Cardinal; const AData: array of Byte; ASize:
+        Integer);
     procedure AddMsgSet(AFileName: string);
     procedure ClearSets();
 {$IFNDEF USE_PRINTER_OBJ}
     property OnPrint: TSqzPrintEvent read FOnPrint write FOnPrint;
 {$ENDIF}
+    property NodeMask: Cardinal read FNodeMask write FNodeMask;
   end;
 
 
@@ -498,6 +502,18 @@ end;
 {$ENDREGION}
 
 {$REGION 'TSqzLogNetHandler'}
+function TSqzLogNetHandler.getNodeFromId(AMsgId: Cardinal): Integer;
+var
+  LMask: Cardinal;
+begin
+  LMask := FNodeMask;
+  Result := AMsgId and LMask;
+  while (LMask and 1) = 0 do begin
+    Result := Result shr 1;
+    LMask  := LMask shr 1;
+  end;
+end;
+
 function TSqzLogNetHandler.findNode(ANodeId: Integer): TSqzLogHandler;
 var
 	I: Integer;
@@ -566,22 +582,24 @@ end;
 {$ENDIF}
 // ----------------------------------------------------------------------------
 
-procedure TSqzLogNetHandler.ProcessSqzData(const ANode: Integer; const AData:
+procedure TSqzLogNetHandler.ProcessSqzData(const AId: Cardinal; const AData:
     array of Byte; ASize: Integer);
 var
-	LStr: string;
+  LNode: Integer;
+  LStr: string;
 	LHandler: TSqzLogHandler;
 begin
-	LHandler := findNode(ANode);
+  LNode := getNodeFromId(AId);
+	LHandler := findNode(LNode);
 	if LHandler = nil then begin
-		LHandler := TSqzLogHandler.Create(ANode,FMsgSets,FProtoV2);
+		LHandler := TSqzLogHandler.Create(LNode,FMsgSets,FProtoV2);
 		FLogHandlers.Add(LHandler);
 	end;
 
 	if LHandler.ProcessSqzData(AData,ASize) then begin
 		LStr := LHandler.GetLogMessage;
 		if LStr <> '' then
-			print(ANode,sqzVerbose,LStr);
+			print(LNode,sqzVerbose,LStr);
 	end;
 end;
 

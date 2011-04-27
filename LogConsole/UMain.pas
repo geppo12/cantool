@@ -48,7 +48,6 @@ type
     Options: TTabSheet;
     lbLogEntry: TListBox;
     eSqzLogID: TEdit;
-    Label2: TLabel;
     eNodeMask: TEdit;
     Label3: TLabel;
     eSqzLogMask: TEdit;
@@ -68,7 +67,8 @@ type
     FCanSqzFilter: Cardinal;
     FCanSqzId: Cardinal;
     procedure print(ANodeId: Integer; AClass: TSqzLogClass; ATitle: string);
-
+    procedure setupOptions;
+    procedure showOptions;
   public
     { Public declarations }
   end;
@@ -139,19 +139,41 @@ begin
 
   Caption := Caption + VersionInformation;
 
-  // we don't put try excpet because is starting value
-  // TODO 2 -cFEATURE : load/save options
-  FCanSqzFilter := StrToInt(eSqzLogMask.Text);
-  FCanSqzId     := StrToInt(eSqzLogID.Text);
+  // startup default values
+  // TODO 2 -cFEATURE : load / save options
+  FCanSqzId     := $FE0000;
+  FCanSqzFilter := $FFC000;
+  FSqzLogProcessor.NodeMask := $3FFF;
+
 end;
 
 procedure TfmMain.pgControlChange(Sender: TObject);
+var
+  LCanOpen: Boolean;
 begin
-  if pgControl.TabIndex = Ord(pgCanLog) then begin
-    pgControl.TabIndex := FOldPage;
-    MessageDlg('''Canlog'' not implementated yet',mtError, [mbOk],0);
-  end else
-    FOldPage := pgControl.TabIndex;
+  LCanOpen := True;
+  case TAppPages(pgControl.TabIndex) of
+    pgDebug: begin
+        // save options
+        setupOptions;
+        FOldPage := pgControl.TabIndex;
+      end;
+    pgCanLog: begin
+        pgControl.TabIndex := FOldPage;
+        MessageDlg('''Canlog'' not implementated yet',mtError, [mbOk],0);
+      end;
+    pgOptions:
+      if FLink.Active then begin
+        pgControl.TabIndex := FOldPage;
+        MessageDlg('Cannot change setup with active link',mtError, [mbOk],0);
+      end else begin
+        LCanOpen := False;
+        showOptions;
+        FOldPage := pgControl.TabIndex;
+      end;
+  end;
+
+  cbOpen.Enabled := LCanOpen;
 end;
 
 procedure TfmMain.Timer1Timer(Sender: TObject);
@@ -164,7 +186,7 @@ begin
     with LMsg do
       if (FCanSqzFilter and ecmID) = FCanSqzId then begin
         FLogger.LogDebug('Process msg: %s',[ToString]);
-        FSqzLogProcessor.ProcessSqzData(GetNode,ecmData,ecmLen);
+        FSqzLogProcessor.ProcessSqzData(ecmID,ecmData,ecmLen);
       end;
   end;
   Timer1.Enabled := true;
@@ -181,6 +203,21 @@ begin
   lbLogEntry.Items.Add(LMessageString);
   FLogger.LogMessage('Message sqzlog: '+LMessageString);
 end;
+
+procedure TfmMain.setupOptions;
+begin
+  FCanSqzFilter := StrToIntDef(eSqzLogMask.Text,FCanSqzFilter);
+  FCanSqzId     := StrToIntDef(eSqzLogID.Text,FCanSqzId);
+  FSqzLogProcessor.NodeMask := StrToIntDef(eNodeMask.Text,FSqzLogProcessor.NodeMask);
+end;
+
+procedure TfmMain.showOptions;
+begin
+  eSqzLogMask.Text := Format('0x%.8X',[FCanSqzFilter]);
+  eSqzLogID.Text   := Format('0x%.8X',[FCanSqzId]);
+  eNodeMask.Text   := Format('0x%.8X',[FSqzLogProcessor.NodeMask]);
+end;
+
 
 {$ENDREGION}
 

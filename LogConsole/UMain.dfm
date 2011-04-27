@@ -21,7 +21,7 @@ object fmMain: TfmMain
   TextHeight = 13
   object Label1: TLabel
     Left = 16
-    Top = 444
+    Top = 443
     Width = 32
     Height = 13
     Anchors = [akLeft, akBottom]
@@ -29,7 +29,7 @@ object fmMain: TfmMain
   end
   object eName: TEdit
     Left = 64
-    Top = 438
+    Top = 439
     Width = 81
     Height = 21
     Anchors = [akLeft, akBottom]
@@ -37,7 +37,7 @@ object fmMain: TfmMain
   end
   object cbOpen: TCheckBox
     Left = 167
-    Top = 442
+    Top = 441
     Width = 58
     Height = 17
     Anchors = [akLeft, akBottom]
@@ -73,8 +73,6 @@ object fmMain: TfmMain
     object Options: TTabSheet
       Caption = 'Options'
       ImageIndex = 2
-      ExplicitLeft = 8
-      ExplicitTop = 28
       object Label2: TLabel
         Left = 5
         Top = 19
@@ -102,28 +100,24 @@ object fmMain: TfmMain
         Width = 121
         Height = 21
         TabOrder = 0
-        Text = '0xFE0000'
       end
       object eNodeMask: TEdit
         Left = 108
         Top = 104
         Width = 121
         Height = 21
-        TabOrder = 1
-        Text = '0x3FFF'
+        TabOrder = 2
       end
       object eSqzLogMask: TEdit
         Left = 108
         Top = 60
         Width = 121
         Height = 21
-        TabOrder = 2
-        Text = '0xFFC000'
+        TabOrder = 1
       end
     end
   end
   object Timer1: TTimer
-    Interval = 2000
     OnTimer = Timer1Timer
     Left = 264
     Top = 424
