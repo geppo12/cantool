@@ -217,12 +217,10 @@ begin
         			@FNICanBuffer,
         			@LActualRead);
 
-  // #DEBUG
   LNumMsg := LActualRead div sizeof(NCTYPE_CAN_STRUCT);
-  FLogger.LogDebug('NICAN: Read data: byte=%d, obj=%d objSize=%d',[LActualRead,LNumMsg,sizeof(NCTYPE_CAN_STRUCT)]);
 
   for I := 0 to LNumMsg-1 do begin
-    // TODO 2 -cFEATURE : inserire il controllo x gli errori
+    // TODO 2 -cFEATURE : insert error control
     // normal can frame
     if FNICanBuffer[I].FrameType = 0 then begin
       LCanMsg.ecmTime := int64NI2D(FNICanBuffer[I].Timestamp);
@@ -245,7 +243,7 @@ end;
 procedure TNICanLink.checkCanerror;
 begin
   // TODO 2 -cFUNCTION : procedure TNICanLink.checkCanerror;
-  // funzione per il controllo di errori sul bus sulla chiusura dell' interfaccia Can
+  // this function should be check errors when we close interface
 end;
 
 procedure TNICanLink.setName(AName: string);

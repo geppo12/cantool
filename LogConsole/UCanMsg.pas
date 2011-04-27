@@ -51,7 +51,7 @@ uses
   StrUtils;
 
 {$REGION 'TCanMsg'}
-// TODO 2 -cFIXME : vedere metodo per ìidentifciare il nodo
+// TODO 2 -cFIXME : review method to identify a node
 function TCanMsg.GetNode: Cardinal;
 begin
   Result := ecmID and $3FFF;

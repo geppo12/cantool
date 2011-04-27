@@ -1,4 +1,4 @@
-program SqzLogConsole;
+program LogConsole;
 
 uses
   Forms,
