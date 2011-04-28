@@ -31,10 +31,11 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls,
+  UCanMsg,
   UDbgLogger,
   UFileList,
   USqzLogCore,
-  UNICanLink, ComCtrls;
+  UNICanLink, ComCtrls, Grids;
 
 type
   TfmMain = class(TForm)
@@ -52,10 +53,13 @@ type
     Label3: TLabel;
     eSqzLogMask: TEdit;
     Label4: TLabel;
+    sgRawLog: TStringGrid;
     procedure cbOpenClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure pgControlChange(Sender: TObject);
+    procedure pgControlResize(Sender: TObject);
+    procedure sgRawLogClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
     { Private declarations }
@@ -69,6 +73,7 @@ type
     procedure print(ANodeId: Integer; AClass: TSqzLogClass; ATitle: string);
     procedure setupOptions;
     procedure showOptions;
+    procedure removeGridSelection; inline;
   public
     { Public declarations }
   end;
@@ -91,8 +96,7 @@ implementation
 {$R *.dfm}
 
 uses
-  UFileVersion,
-  UCanMsg;
+  UFileVersion;
 
 procedure TfmMain.cbOpenClick(Sender: TObject);
 begin
@@ -138,6 +142,7 @@ begin
   FLogger.LogMessage('Msgsets loaded');
 
   Caption := Caption + VersionInformation;
+  removeGridSelection;
 
   // startup default values
   // TODO 2 -cFEATURE : load / save options
@@ -153,14 +158,11 @@ var
 begin
   LCanOpen := True;
   case TAppPages(pgControl.TabIndex) of
-    pgDebug: begin
+    pgDebug,
+    pgCanLog: begin
         // save options
         setupOptions;
         FOldPage := pgControl.TabIndex;
-      end;
-    pgCanLog: begin
-        pgControl.TabIndex := FOldPage;
-        MessageDlg('''Canlog'' not implementated yet',mtError, [mbOk],0);
       end;
     pgOptions:
       if FLink.Active then begin
@@ -176,6 +178,15 @@ begin
   cbOpen.Enabled := LCanOpen;
 end;
 
+procedure TfmMain.pgControlResize(Sender: TObject);
+begin
+{
+  if pgControl.TabIndex = Ord(pgCanLog) then
+    with sgRawLog do
+      ColWidths[2] := Width - (ColWidths[0]+ColWidths[1]+5);
+}
+end;
+
 procedure TfmMain.Timer1Timer(Sender: TObject);
 var
   LMsg: TCanMsg;
@@ -188,6 +199,8 @@ begin
         FLogger.LogDebug('Process msg: %s',[ToString]);
         FSqzLogProcessor.ProcessSqzData(ecmID,ecmData,ecmLen);
       end;
+    LMsg.ToStrings(sgRawLog.Rows[sgRawLog.RowCount-1]);
+    sgRawLog.RowCount := sgRawLog.RowCount + 1;
   end;
   Timer1.Enabled := true;
 end;
@@ -211,6 +224,11 @@ begin
   FSqzLogProcessor.NodeMask := StrToIntDef(eNodeMask.Text,FSqzLogProcessor.NodeMask);
 end;
 
+procedure TfmMain.sgRawLogClick(Sender: TObject);
+begin
+  removeGridSelection
+end;
+
 procedure TfmMain.showOptions;
 begin
   eSqzLogMask.Text := Format('0x%.8X',[FCanSqzFilter]);
@@ -218,6 +236,11 @@ begin
   eNodeMask.Text   := Format('0x%.8X',[FSqzLogProcessor.NodeMask]);
 end;
 
+procedure TfmMain.removeGridSelection;
+begin
+  // trick to remove selection box not used in log applications
+  sgRawLog.Selection := TGridRect(Rect(-1,-1,-1,-1));
+end;
 
 {$ENDREGION}
 

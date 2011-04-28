@@ -28,17 +28,21 @@ unit UCanMsg;
 interface
 
 Uses
+  Classes,
   Generics.Collections;
 
 type
   TCanMsg = record
+    private
+    function formatData(AChar: Char): string;
+
     public
     ecmTime: Int64;
     ecmID: Cardinal;
     ecmLen: Cardinal;
     ecmData: array [0..7] of Byte;
-    // for debug
     function ToString: string;
+    procedure ToStrings(AStrings: TStrings);
   end;
 
   TCanMsgQueue = TQueue<TCanMsg>;
@@ -50,16 +54,30 @@ uses
   StrUtils;
 
 {$REGION 'TCanMsg'}
+
+function TCanMsg.formatData(AChar: Char): string;
+var
+  I: Integer;
+begin
+  for I := 0 to ecmLen - 1 do
+    Result := Result + Format('%.2X'+AChar,[ecmData[i]]);
+
+  Result := LeftStr(Result,Length(Result)-1);
+end;
+
 function TCanMsg.ToString: string;
 var
   I: Integer;
 begin
   Result := Format('ID=0x%08X L=%d D=',[ecmId,ecmLen]);
+  Result := formatData('.');
+end;
 
-  for I := 0 to ecmLen - 1 do
-    Result := Result + Format('%.2X.',[ecmData[i]]);
-
-  Result := LeftStr(Result,Length(Result)-1);
+procedure TCanMsg.ToStrings(AStrings: TStrings);
+begin
+  AStrings.Strings[0] := Format('0x%.8X',[ecmId]);
+  AStrings.Strings[1] := IntToStr(ecmLen);
+  AStrings.Strings[2] := formatData(' ');
 end;
 
 {$ENDREGION}

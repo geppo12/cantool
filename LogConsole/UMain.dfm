@@ -54,6 +54,7 @@ object fmMain: TfmMain
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 2
     OnChange = pgControlChange
+    OnResize = pgControlResize
     object Debug: TTabSheet
       Caption = 'Debug'
       object lbLogEntry: TListBox
@@ -69,14 +70,31 @@ object fmMain: TfmMain
     object CanLog: TTabSheet
       Caption = 'CanLog'
       ImageIndex = 1
+      object sgRawLog: TStringGrid
+        Left = 0
+        Top = 0
+        Width = 750
+        Height = 396
+        Align = alClient
+        ColCount = 3
+        DefaultRowHeight = 15
+        FixedCols = 0
+        RowCount = 1
+        FixedRows = 0
+        GridLineWidth = 0
+        Options = [goFixedVertLine, goFixedHorzLine]
+        ScrollBars = ssVertical
+        TabOrder = 0
+        OnClick = sgRawLogClick
+        ColWidths = (
+          108
+          30
+          605)
+      end
     end
     object Options: TTabSheet
       Caption = 'Options'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label2: TLabel
         Left = 5
         Top = 19
