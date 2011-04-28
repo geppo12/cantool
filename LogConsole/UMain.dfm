@@ -50,7 +50,7 @@ object fmMain: TfmMain
     Top = 8
     Width = 758
     Height = 424
-    ActivePage = Debug
+    ActivePage = CanLog
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 2
     OnChange = pgControlChange
@@ -73,6 +73,10 @@ object fmMain: TfmMain
     object Options: TTabSheet
       Caption = 'Options'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Label2: TLabel
         Left = 5
         Top = 19
