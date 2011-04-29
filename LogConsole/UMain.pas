@@ -54,13 +54,17 @@ type
     eSqzLogMask: TEdit;
     Label4: TLabel;
     sgRawLog: TStringGrid;
+    vScrollBar: TScrollBar;
     procedure cbOpenClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure pgControlChange(Sender: TObject);
     procedure pgControlResize(Sender: TObject);
-    procedure sgRawLogClick(Sender: TObject);
+    procedure sgRawLogDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect;
+        State: TGridDrawState);
     procedure Timer1Timer(Sender: TObject);
+    procedure vScrollBarScroll(Sender: TObject; ScrollCode: TScrollCode; var
+        ScrollPos: Integer);
   private
     { Private declarations }
     FOldPage: Integer;
@@ -70,10 +74,16 @@ type
     FSqzLogProcessor: TSqzLogNetHandler;
     FCanSqzFilter: Cardinal;
     FCanSqzId: Cardinal;
+    { can log support }
+    FCanMsgList: TCanMsgList;
+    FCanMsgView: TCanMsgView;
     procedure print(ANodeId: Integer; AClass: TSqzLogClass; ATitle: string);
+    procedure setupCanView(AView: TCanMsgView);
+    procedure addMsgToList(AMsg: TCanMsg);
     procedure setupOptions;
     procedure showOptions;
-    procedure removeGridSelection; inline;
+    procedure setupLogRowCount;
+    procedure updateRowSize;
   public
     { Public declarations }
   end;
@@ -98,6 +108,7 @@ implementation
 uses
   UFileVersion;
 
+{$REGION 'FormEvents'}
 procedure TfmMain.cbOpenClick(Sender: TObject);
 begin
   if cbOpen.Checked then begin
@@ -139,17 +150,20 @@ begin
   for LFile in FFileList do
     FSqzLogProcessor.AddMsgSet(LFile);
 
+  FCanMsgList := TCanMsgList.Create;
+  FCanMsgView := TCanMsgView.Create(FCanMsgList);
+
   FLogger.LogMessage('Msgsets loaded');
 
   Caption := Caption + VersionInformation;
-  removeGridSelection;
+  setupLogRowCount;
+  updateRowSize;
 
   // startup default values
   // TODO 2 -cFEATURE : load / save options
   FCanSqzId     := $FE0000;
   FCanSqzFilter := $FFC000;
   FSqzLogProcessor.NodeMask := $3FFF;
-
 end;
 
 procedure TfmMain.pgControlChange(Sender: TObject);
@@ -174,17 +188,13 @@ begin
         FOldPage := pgControl.TabIndex;
       end;
   end;
-
   cbOpen.Enabled := LCanOpen;
 end;
 
 procedure TfmMain.pgControlResize(Sender: TObject);
 begin
-{
-  if pgControl.TabIndex = Ord(pgCanLog) then
-    with sgRawLog do
-      ColWidths[2] := Width - (ColWidths[0]+ColWidths[1]+5);
-}
+  setupLogRowCount;
+  updateRowSize;
 end;
 
 procedure TfmMain.Timer1Timer(Sender: TObject);
@@ -199,11 +209,36 @@ begin
         FLogger.LogDebug('Process msg: %s',[ToString]);
         FSqzLogProcessor.ProcessSqzData(ecmID,ecmData,ecmLen);
       end;
-    LMsg.ToStrings(sgRawLog.Rows[sgRawLog.RowCount-1]);
-    sgRawLog.RowCount := sgRawLog.RowCount + 1;
+    addMsgToList(LMsg);
   end;
   Timer1.Enabled := true;
 end;
+
+procedure TfmMain.sgRawLogDrawCell(Sender: TObject; ACol, ARow: Integer; Rect:
+    TRect; State: TGridDrawState);
+var
+  I,J: Integer;
+begin
+  if ARow < FCanMsgView.Count then begin
+    with FCanMsgView.Messages[ARow] do
+      case ACol of
+        0: sgRawLog.Canvas.TextOut(Rect.Left,Rect.Top,Format('0x%.8X',[ecmId]));
+        1: sgRawLog.Canvas.TextOut(Rect.Left,Rect.Top,Format('%d',[ecmLen]));
+        2: sgRawLog.Canvas.TextOut(Rect.Left,Rect.Top,DataStr);
+      end;
+  end else begin
+    sgRawLog.Canvas.FillRect(Rect);
+  end;
+end;
+
+procedure TfmMain.vScrollBarScroll(Sender: TObject; ScrollCode: TScrollCode;
+    var ScrollPos: Integer);
+begin
+  FCanMsgView.Top := ScrollPos;
+  sgRawLog.Invalidate;
+end;
+
+{$ENDREGION}
 
 {$REGION 'Local procedures'}
 
@@ -217,16 +252,27 @@ begin
   FLogger.LogMessage('Message sqzlog: '+LMessageString);
 end;
 
+procedure TfmMain.setupCanView(AView: TCanMsgView);
+begin
+  FCanMsgView.Free;
+  FCanMsgView := AView;
+end;
+
+procedure TfmMain.addMsgToList(AMsg: TCanMsg);
+begin
+  FCanMsgList.Add(AMsg);
+  vScrollBar.Max := FCanMsgList.Count;
+  if pgControl.TabIndex = Ord(pgCanLog) then begin
+    FCanMsgView.Count := sgRawLog.RowCount;
+    sgRawLog.Invalidate;
+  end;
+end;
+
 procedure TfmMain.setupOptions;
 begin
   FCanSqzFilter := StrToIntDef(eSqzLogMask.Text,FCanSqzFilter);
   FCanSqzId     := StrToIntDef(eSqzLogID.Text,FCanSqzId);
   FSqzLogProcessor.NodeMask := StrToIntDef(eNodeMask.Text,FSqzLogProcessor.NodeMask);
-end;
-
-procedure TfmMain.sgRawLogClick(Sender: TObject);
-begin
-  removeGridSelection
 end;
 
 procedure TfmMain.showOptions;
@@ -236,14 +282,16 @@ begin
   eNodeMask.Text   := Format('0x%.8X',[FSqzLogProcessor.NodeMask]);
 end;
 
-procedure TfmMain.removeGridSelection;
+procedure TfmMain.setupLogRowCount;
 begin
-  // trick to remove selection box not used in log applications
-  sgRawLog.Selection := TGridRect(Rect(-1,-1,-1,-1));
+  sgRawLog.RowCount := sgRawLog.Height div sgRawLog.DefaultRowHeight;
+end;
+
+procedure TfmMain.updateRowSize;
+begin
+  with sgRawLog do
+    ColWidths[2] := Width - (ColWidths[0]+ColWidths[1]+5);
 end;
 
 {$ENDREGION}
-
-
-
 end.

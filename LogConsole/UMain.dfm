@@ -73,23 +73,35 @@ object fmMain: TfmMain
       object sgRawLog: TStringGrid
         Left = 0
         Top = 0
-        Width = 750
+        Width = 736
         Height = 396
         Align = alClient
         ColCount = 3
         DefaultRowHeight = 15
+        DefaultDrawing = False
         FixedCols = 0
         RowCount = 1
         FixedRows = 0
         GridLineWidth = 0
-        Options = [goFixedVertLine, goFixedHorzLine]
-        ScrollBars = ssVertical
+        Options = []
+        ScrollBars = ssNone
         TabOrder = 0
-        OnClick = sgRawLogClick
+        OnDrawCell = sgRawLogDrawCell
         ColWidths = (
-          108
+          93
           30
-          605)
+          332)
+      end
+      object vScrollBar: TScrollBar
+        Left = 736
+        Top = 0
+        Width = 14
+        Height = 396
+        Align = alRight
+        Kind = sbVertical
+        PageSize = 0
+        TabOrder = 1
+        OnScroll = vScrollBarScroll
       end
     end
     object Options: TTabSheet
