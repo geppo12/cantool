@@ -101,6 +101,7 @@ object fmMain: TfmMain
         Kind = sbVertical
         PageSize = 0
         TabOrder = 1
+        OnChange = vScrollBarChange
         OnScroll = vScrollBarScroll
       end
     end

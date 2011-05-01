@@ -63,6 +63,7 @@ type
     procedure sgRawLogDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect;
         State: TGridDrawState);
     procedure Timer1Timer(Sender: TObject);
+    procedure vScrollBarChange(Sender: TObject);
     procedure vScrollBarScroll(Sender: TObject; ScrollCode: TScrollCode; var
         ScrollPos: Integer);
   private
@@ -219,6 +220,8 @@ procedure TfmMain.sgRawLogDrawCell(Sender: TObject; ACol, ARow: Integer; Rect:
 var
   I,J: Integer;
 begin
+  // clear background
+  sgRawLog.Canvas.FillRect(Rect);
   if ARow < FCanMsgView.Count then begin
     with FCanMsgView.Messages[ARow] do
       case ACol of
@@ -226,16 +229,14 @@ begin
         1: sgRawLog.Canvas.TextOut(Rect.Left,Rect.Top,Format('%d',[ecmLen]));
         2: sgRawLog.Canvas.TextOut(Rect.Left,Rect.Top,DataStr);
       end;
-  end else begin
-    sgRawLog.Canvas.FillRect(Rect);
   end;
 end;
 
 procedure TfmMain.vScrollBarScroll(Sender: TObject; ScrollCode: TScrollCode;
     var ScrollPos: Integer);
 begin
-  FCanMsgView.Top := ScrollPos;
-  sgRawLog.Invalidate;
+  //FCanMsgView.Top := ScrollPos;
+  //sgRawLog.Invalidate;
 end;
 
 {$ENDREGION}
@@ -259,12 +260,23 @@ begin
 end;
 
 procedure TfmMain.addMsgToList(AMsg: TCanMsg);
+var
+  LScrollLen: Integer;
 begin
+  FLogger.LogDebug('AddMsgToList: %s',[AMsg.ToString]);
   FCanMsgList.Add(AMsg);
-  vScrollBar.Max := FCanMsgList.Count;
   if pgControl.TabIndex = Ord(pgCanLog) then begin
+    // TODO 1 -cFIXME : quando view avrà size questa riga scompare
     FCanMsgView.Count := sgRawLog.RowCount;
     sgRawLog.Invalidate;
+    // Scroll count only not visible part
+    LScrollLen := FCanMsgList.Count - FCanMsgView.Count;
+    if LScrollLen = 0 then
+      vScrollBar.Visible := false
+    else begin
+      vScrollBar.Visible := true;
+      vScrollBar.Max := FCanMsgList.Count - FCanMsgView.Count;
+    end;
   end;
 end;
 
@@ -285,12 +297,19 @@ end;
 procedure TfmMain.setupLogRowCount;
 begin
   sgRawLog.RowCount := sgRawLog.Height div sgRawLog.DefaultRowHeight;
+  FCanMsgView.Count := sgRawLog.RowCount;
 end;
 
 procedure TfmMain.updateRowSize;
 begin
   with sgRawLog do
     ColWidths[2] := Width - (ColWidths[0]+ColWidths[1]+5);
+end;
+
+procedure TfmMain.vScrollBarChange(Sender: TObject);
+begin
+  FCanMsgView.Top := vScrollBar.Position;
+  sgRawLog.Invalidate;
 end;
 
 {$ENDREGION}

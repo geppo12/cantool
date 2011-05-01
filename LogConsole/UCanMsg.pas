@@ -85,6 +85,8 @@ type
     property Count: Integer read getCount;
   end;
 
+  // TODO 1 -cFIXME : inserire un parametro size invariante rispetto al count
+  // TODO 1 -cFIXME : count (read-only) dipende dal FList.Count e da size (vedi sopra)
   TCanMsgView = class
     private
     FList: TCanMsgList;
@@ -112,7 +114,8 @@ implementation
 
 uses
   SysUtils,
-  StrUtils;
+  StrUtils,
+  UDbgLogger;
 
 {$REGION 'TCanMsg'}
 
@@ -242,8 +245,8 @@ end;
 procedure TCanMsgView.setTop(ATop: Integer);
 begin
   if FTop <> ATop then begin
-    if ATop >= FCount then
-      ATop := FCount - 1;
+    if ATop >= (FList.Count - FCount) then
+      ATop := FList.Count - FCount;
     FTop := ATop;
   end;
 end;
@@ -251,8 +254,8 @@ end;
 procedure TCanMsgView.setCount(ACount: Integer);
 begin
   if FCount <> ACount then begin
-    if FList.Count - FTop < ACount then
-      ACount := FList.Count - FTop;
+    if ACount > FList.Count then
+      ACount := FList.Count;
     FCount := ACount;
   end;
 end;
