@@ -85,23 +85,22 @@ type
     property Count: Integer read getCount;
   end;
 
-  // TODO 1 -cFIXME : inserire un parametro size invariante rispetto al count
-  // TODO 1 -cFIXME : count (read-only) dipende dal FList.Count e da size (vedi sopra)
   TCanMsgView = class
     private
     FList: TCanMsgList;
-    FCount: Integer;
+    FViewSize: Integer;
     FTop: Integer;
 
     function getMessages(AIndex: Integer): TCanMsg;
     procedure setTop(ATop: Integer);
-    procedure setCount(ACount: Integer);
+    function getCount: Integer;
 
     public
     constructor Create(AList: TCanMsgList);
     property Messages[AIndex: Integer]: TCanMsg read getMessages;
     property Top: Integer read FTop write setTop;
-    property Count: Integer read FCount write setCount;
+    property Count: Integer read getCount;
+    property ViewSize: Integer read FViewSize write FViewSize;
   end;
 
   TCanMsgViewFiltered = class(TCanMsgView)
@@ -152,7 +151,6 @@ end;
 {$ENDREGION}
 
 {$REGION 'TCanMsgList'}
-
 function TCanMsgList.filterMatch(AMsg: TCanMsg): Boolean;
 begin
   Result := (AMsg.ecmID and FFilter.MaskId) = FFilter.ValueId;
@@ -233,7 +231,6 @@ begin
 
   Result := LMid;
 end;
-
 {$ENDREGION}
 
 {$REGION 'TCanMsgView'}
@@ -245,19 +242,18 @@ end;
 procedure TCanMsgView.setTop(ATop: Integer);
 begin
   if FTop <> ATop then begin
-    if ATop >= (FList.Count - FCount) then
-      ATop := FList.Count - FCount;
+    if ATop >= (FList.Count - Count) then
+      ATop := FList.Count - Count;
     FTop := ATop;
   end;
 end;
 
-procedure TCanMsgView.setCount(ACount: Integer);
+function TCanMsgView.getCount: Integer;
 begin
-  if FCount <> ACount then begin
-    if ACount > FList.Count then
-      ACount := FList.Count;
-    FCount := ACount;
-  end;
+  if FList.Count < FViewSize then
+    Result := FList.Count
+  else
+    Result := FViewSize;
 end;
 
 constructor TCanMsgView.Create(AList: TCanMsgList);
@@ -265,7 +261,6 @@ begin
   FList := AList;
   FList.Filtered := false;
 end;
-
 {$ENDREGION}
 
 {$REGION 'TCanMsgViewFiltered'}

@@ -266,8 +266,6 @@ begin
   FLogger.LogDebug('AddMsgToList: %s',[AMsg.ToString]);
   FCanMsgList.Add(AMsg);
   if pgControl.TabIndex = Ord(pgCanLog) then begin
-    // TODO 1 -cFIXME : quando view avrà size questa riga scompare
-    FCanMsgView.Count := sgRawLog.RowCount;
     sgRawLog.Invalidate;
     // Scroll count only not visible part
     LScrollLen := FCanMsgList.Count - FCanMsgView.Count;
@@ -297,7 +295,7 @@ end;
 procedure TfmMain.setupLogRowCount;
 begin
   sgRawLog.RowCount := sgRawLog.Height div sgRawLog.DefaultRowHeight;
-  FCanMsgView.Count := sgRawLog.RowCount;
+  FCanMsgView.ViewSize := sgRawLog.RowCount;
 end;
 
 procedure TfmMain.updateRowSize;
