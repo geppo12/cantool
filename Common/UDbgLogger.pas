@@ -55,6 +55,8 @@ type
     procedure Reset; virtual;
     procedure LogData(ALogLevel: TDbgLogClass; AString: string); virtual; abstract;
     procedure LogException(AString: string = ''); virtual;
+    procedure EnterMethod(AObject: TObject; AMethodName: string); virtual;
+    procedure LeaveMethod(AObject: TObject; AMethodName: string); virtual;
     property Enable: Boolean read FEnable write setEnable;
   end;
 
@@ -87,6 +89,8 @@ type
     procedure LogVerbose(AStringFmt: string; AArgs: array of const); overload;
     procedure LogDebug(AString: string); overload;
     procedure LogDebug(AStringFmt: string; AArgs: array of const); overload;
+    procedure EnterMethod(AObject: TObject; AMethodName: string);
+    procedure LeaveMethod(AObject: TObject; AMethodName: string);
     property Enable: boolean read FEnable write setEnable;
 
     class property Instance: TDbgLogger read FInstance;
@@ -121,6 +125,8 @@ type
     procedure Reset; override;
     procedure LogData(AClass: TDbgLogClass; AString: string); override;
     procedure LogException(AString: string = ''); override;
+    procedure EnterMethod(AObject: TObject; AMethodName: string); override;
+    procedure LeaveMethod(AObject: TObject; AMethodName: string); override;
   end;
 {$ENDIF}
 {$ENDREGION}
@@ -180,6 +186,15 @@ begin
   LogData(lcError,Format('EXCEPTION: %s',[AString]));
 end;
 
+procedure TDbgLoggerEngine.EnterMethod(AObject: TObject; AMethodName: string);
+begin
+  LogData(lcDebug,Format('>>>ENTER %s.%s',[AObject.ClassName,AMethodName]));
+end;
+
+procedure TDbgLoggerEngine.LeaveMethod(AObject: TObject; AMethodName: string);
+begin
+  LogData(lcDebug,Format('<<<LEAVE %s.%s',[AObject.ClassName,AMethodName]));
+end;
 
 {$ENDREGION}
 
@@ -351,6 +366,27 @@ begin
   end;
 end;
 
+procedure TDbgLogger.EnterMethod(AObject: TObject; AMethodName: string);
+begin
+  if FEnable then try
+    FLoggerEngine.EnterMethod(AObject,AMethodName);
+  except
+    on E: Exception do
+      FLoggerEngine.LogData(lcInternal,E.Message);
+  end;
+end;
+
+procedure TDbgLogger.LeaveMethod(AObject: TObject; AMethodName: string);
+begin
+  if FEnable then try
+    FLoggerEngine.LeaveMethod(AObject,AMethodName);
+  except
+    on E: Exception do
+      FLoggerEngine.LogData(lcInternal,E.Message);
+  end;
+end;
+
+
 {$ENDREGION}
 
 {$REGION 'TDbgLoggerEngineSI'}
@@ -449,6 +485,15 @@ begin
   SiMain.LogException(AString);
 end;
 
+procedure TDbgLoggerEngineSI.EnterMethod(AObject: TObject; AMethodName: string);
+begin
+  SiMain.EnterMethod(Aobject,AMethodName);
+end;
+
+procedure TDbgLoggerEngineSI.LeaveMethod(AObject: TObject; AMethodName: string);
+begin
+  SiMain.LeaveMethod(Aobject,AMethodName);
+end;
 
 {$ENDIF} { USE_SMARTINSPECT }
 {$ENDREGION}
