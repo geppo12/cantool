@@ -62,6 +62,7 @@ type
     cbFilter: TCheckBox;
     procedure cbFilterClick(Sender: TObject);
     procedure cbOpenClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure pgControlChange(Sender: TObject);
@@ -113,6 +114,7 @@ implementation
 {$R *.dfm}
 
 uses
+  UAbout,
   UFileVersion;
 
 {$REGION 'FormEvents'}
@@ -171,6 +173,14 @@ begin
   FCanSqzId     := $FE0000;
   FCanSqzFilter := $FFC000;
   FSqzLogProcessor.NodeMask := $3FFF;
+end;
+
+procedure TfmMain.FormClose(Sender: TObject; var Action: TCloseAction);
+var
+  LAbout: TForm;
+begin
+  LAbout := TfmAbout.Create(self);
+  LAbout.ShowModal;
 end;
 
 procedure TfmMain.pgControlChange(Sender: TObject);
@@ -252,38 +262,6 @@ begin
   sgRawLog.Invalidate;
 end;
 
-{$ENDREGION}
-
-{$REGION 'Local procedures'}
-
-procedure TfmMain.print(ANodeId: Integer; AClass: TSqzLogClass; ATitle: string);
-var
-  LMessageString: string;
-begin
-  LMessageString := Format('N:%d -- ',[ANodeId])+ATitle;
-
-  lbLogEntry.Items.Add(LMessageString);
-  FLogger.LogMessage('Message sqzlog: '+LMessageString);
-end;
-
-procedure TfmMain.setupCanView(AView: TCanMsgView);
-begin
-  FCanMsgView.Free;
-  FCanMsgView := AView;
-end;
-
-procedure TfmMain.addMsgToList(AMsg: TCanMsg);
-var
-  LScrollLen: Integer;
-begin
-  FLogger.LogDebug('AddMsgToList: %s',[AMsg.ToString]);
-  FCanMsgList.Add(AMsg);
-  if pgControl.TabIndex = Ord(pgCanLog) then begin
-    updateScrollBar;
-    sgRawLog.Invalidate;
-  end;
-end;
-
 procedure TfmMain.cbFilterClick(Sender: TObject);
 var
   LFilter: TCanMsgFilter;
@@ -316,6 +294,38 @@ begin
   end;
   updateScrollBar;
   sgRawLog.Invalidate;
+end;
+
+{$ENDREGION}
+
+{$REGION 'Local procedures'}
+
+procedure TfmMain.print(ANodeId: Integer; AClass: TSqzLogClass; ATitle: string);
+var
+  LMessageString: string;
+begin
+  LMessageString := Format('N:%d -- ',[ANodeId])+ATitle;
+
+  lbLogEntry.Items.Add(LMessageString);
+  FLogger.LogMessage('Message sqzlog: '+LMessageString);
+end;
+
+procedure TfmMain.setupCanView(AView: TCanMsgView);
+begin
+  FCanMsgView.Free;
+  FCanMsgView := AView;
+end;
+
+procedure TfmMain.addMsgToList(AMsg: TCanMsg);
+var
+  LScrollLen: Integer;
+begin
+  FLogger.LogDebug('AddMsgToList: %s',[AMsg.ToString]);
+  FCanMsgList.Add(AMsg);
+  if pgControl.TabIndex = Ord(pgCanLog) then begin
+    updateScrollBar;
+    sgRawLog.Invalidate;
+  end;
 end;
 
 procedure TfmMain.setupOptions;

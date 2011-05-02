@@ -9,7 +9,8 @@ uses
   UCanMsg in 'UCanMsg.pas',
   UFileList in 'UFileList.pas',
   UDbgLogger in '..\Common\UDbgLogger.pas',
-  UFileVersion in '..\Common\UFileVersion.pas';
+  UFileVersion in '..\Common\UFileVersion.pas',
+  UAbout in 'UAbout.pas' {fmAbout};
 
 {$R *.res}
 

@@ -12,6 +12,7 @@ object fmMain: TfmMain
   Font.Style = []
   OldCreateOrder = False
   Position = poDesktopCenter
+  OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   DesignSize = (
@@ -71,6 +72,10 @@ object fmMain: TfmMain
     OnResize = pgControlResize
     object Debug: TTabSheet
       Caption = 'Debug'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object lbLogEntry: TListBox
         Left = 0
         Top = 0
