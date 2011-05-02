@@ -10,7 +10,8 @@ uses
   UFileList in 'UFileList.pas',
   UDbgLogger in '..\Common\UDbgLogger.pas',
   UFileVersion in '..\Common\UFileVersion.pas',
-  UAbout in 'UAbout.pas' {fmAbout};
+  UAbout in 'UAbout.pas' {fmAbout},
+  UFmFilters in 'UFmFilters.pas' {fmFilter};
 
 {$R *.res}
 

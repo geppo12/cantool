@@ -57,14 +57,17 @@ type
   TCanMsgFilter = record
     public
     MaskId: Cardinal;
-    ValueId: Cardinal;
+    ValueLow: Cardinal;
+    ValueHigh: Cardinal;
   end;
+
+  TCanMsgFilterList = TList<TCanMsgFilter>;
 
   TCanMsgList = class
     private
     FMapList: TList<Integer>;
     FMsgList: TList<TCanMsg>;
-    FFilter: TCanMsgFilter;
+    FFilterList: TCanMsgFilterList;
     FFiltered: Boolean;
 
     function filterMatch(AMsg: TCanMsg): Boolean; inline;
@@ -79,7 +82,7 @@ type
     //* Convert index from fitered domanin to unfiltered domain and viceversa
     function ConvertIndex(AIndex: Integer): Integer;
 
-    property Filter: TCanMsgFilter read FFilter write FFilter;
+    property FilterList: TCanMsgFilterList read FFilterList;
     property Filtered: Boolean read FFiltered write setFiltered;
     property Messages[AIndex: Integer]: TCanMsg read getMessages;
     property Count: Integer read getCount;
@@ -147,8 +150,16 @@ end;
 
 {$REGION 'TCanMsgList'}
 function TCanMsgList.filterMatch(AMsg: TCanMsg): Boolean;
+var
+  LFilter: TCanMsgFilter;
+  LMaskedId: Cardinal;
 begin
-  Result := (AMsg.ecmID and FFilter.MaskId) = FFilter.ValueId;
+  Result := false;
+  for LFilter in FFilterList do begin
+    LMaskedId := AMsg.ecmID and LFilter.MaskId;
+    if (LMaskedId >= LFilter.ValueLow) and (LMaskedId <= LFilter.ValueHigh)  then
+      Exit(true);
+  end;
 end;
 
 procedure TCanMsgList.setFiltered(AFiltered: Boolean);
@@ -188,10 +199,12 @@ begin
   inherited;
   FMsgList := TList<TCanMsg>.Create;
   FMapList := TList<Integer>.Create;
+  FFilterList := TCanMsgFilterList.Create;
 end;
 
 destructor TCanMsgList.Destroy;
 begin
+  FFilterList.Free;
   FMapList.Free;
   FMsgList.Free;
   inherited;

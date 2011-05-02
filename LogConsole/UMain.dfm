@@ -28,20 +28,6 @@ object fmMain: TfmMain
     Anchors = [akLeft, akBottom]
     Caption = 'Device'
   end
-  object lblValue: TLabel
-    Left = 609
-    Top = 442
-    Width = 26
-    Height = 13
-    Caption = 'Value'
-  end
-  object lblMask: TLabel
-    Left = 426
-    Top = 442
-    Width = 24
-    Height = 13
-    Caption = 'Mask'
-  end
   object eName: TEdit
     Left = 64
     Top = 438
@@ -178,27 +164,25 @@ object fmMain: TfmMain
       end
     end
   end
-  object eMask: TEdit
-    Left = 456
-    Top = 438
-    Width = 120
-    Height = 21
-    TabOrder = 3
-  end
-  object eValue: TEdit
-    Left = 641
-    Top = 438
-    Width = 120
-    Height = 21
-    TabOrder = 4
-  end
-  object cbFilter: TCheckBox
-    Left = 400
-    Top = 440
-    Width = 20
+  object cbFilterEnable: TCheckBox
+    Left = 605
+    Top = 442
+    Width = 80
     Height = 17
-    TabOrder = 5
-    OnClick = cbFilterClick
+    Anchors = [akRight, akBottom]
+    Caption = 'Filter Enable'
+    TabOrder = 3
+    OnClick = cbFilterEnableClick
+  end
+  object btnFilterEdit: TButton
+    Left = 691
+    Top = 438
+    Width = 75
+    Height = 25
+    Anchors = [akRight, akBottom]
+    Caption = 'Filter Edit'
+    TabOrder = 4
+    OnClick = btnFilterEditClick
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer

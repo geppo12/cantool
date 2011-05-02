@@ -55,12 +55,10 @@ type
     Label4: TLabel;
     sgRawLog: TStringGrid;
     vScrollBar: TScrollBar;
-    eMask: TEdit;
-    eValue: TEdit;
-    lblValue: TLabel;
-    lblMask: TLabel;
-    cbFilter: TCheckBox;
-    procedure cbFilterClick(Sender: TObject);
+    cbFilterEnable: TCheckBox;
+    btnFilterEdit: TButton;
+    procedure btnFilterEditClick(Sender: TObject);
+    procedure cbFilterEnableClick(Sender: TObject);
     procedure cbOpenClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
@@ -115,6 +113,7 @@ implementation
 
 uses
   UAbout,
+  UFmFilters,
   UFileVersion;
 
 {$REGION 'FormEvents'}
@@ -262,44 +261,39 @@ begin
   sgRawLog.Invalidate;
 end;
 
-procedure TfmMain.cbFilterClick(Sender: TObject);
+procedure TfmMain.cbFilterEnableClick(Sender: TObject);
 var
   LFilter: TCanMsgFilter;
 begin
-  if cbFilter.Checked then
-    try
-      if (eMask.Text <> '') and (eValue.Text <> '') then begin
-        LFilter.MaskId := Cardinal(StrToInt(eMask.Text));
-        LFilter.ValueId := Cardinal(StrToInt(eValue.Text));
-        FCanMsgList.Filter := LFilter;
-        FCanMsgList.Filtered := true;
-        eMask.Enabled := false;
-        eValue.Enabled := false;
-        // resfresh control
-        FCanMsgView.Update;
-      end else
-        cbFilter.Checked := false;
-    except
-      on E: EConvertError do begin
-        LFilter := FCanMsgList.Filter;
-        eMask.Text := Format('0x%.8X',[LFilter.MaskId]);
-        eValue.Text := Format('0x%.8X',[LFilter.ValueId]);
-        cbFilter.Checked := false;
-      end;
-    end
-  else begin
+  if cbFilterEnable.Checked then begin
+    if FCanMsgList.FilterList.Count > 0 then begin
+      FCanMsgList.Filtered := true;
+      // resfresh control
+      FCanMsgView.Update;
+    end else begin
+      cbFilterEnable.Checked := false;
+      MessageDlg('No filters avaible' + #10#13 + 'Please edit',mtError, [mbOk],0);
+    end;
+  end else
     FCanMsgList.Filtered := false;
-    eMask.Enabled := true;
-    eValue.Enabled := true;
-  end;
   updateScrollBar;
   sgRawLog.Invalidate;
 end;
 
+procedure TfmMain.btnFilterEditClick(Sender: TObject);
+var
+  LFilterForm: TFmFilter;
+begin
+  LFilterForm := TFmFilter.Create(self);
+  LFilterForm.ShowFilterList(FCanMsgList.FilterList);
+  if LFilterForm.ShowModal = mrOk then
+    LFilterForm.UpdateFilterList(FCanMsgList.FilterList);
+
+  LFilterForm.Free;
+end;
 {$ENDREGION}
 
 {$REGION 'Local procedures'}
-
 procedure TfmMain.print(ANodeId: Integer; AClass: TSqzLogClass; ATitle: string);
 var
   LMessageString: string;
@@ -344,11 +338,8 @@ end;
 
 procedure TfmMain.showFilterControls(AOnOff: Boolean);
 begin
-  cbFilter.Visible := AOnOff;
-  lblMask.Visible  := AOnOff;
-  eMask.Visible    := AOnOff;
-  lblValue.Visible := AOnOff;
-  eValue.Visible   := AOnOff;
+  btnFilterEdit.Visible := AOnOff;
+  cbFilterEnable.Visible  := AOnOff;
 end;
 
 procedure TfmMain.setupLogRowCount;
