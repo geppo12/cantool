@@ -21,15 +21,29 @@ object fmMain: TfmMain
   TextHeight = 13
   object Label1: TLabel
     Left = 16
-    Top = 443
+    Top = 442
     Width = 32
     Height = 13
     Anchors = [akLeft, akBottom]
     Caption = 'Device'
   end
+  object lblValue: TLabel
+    Left = 609
+    Top = 442
+    Width = 26
+    Height = 13
+    Caption = 'Value'
+  end
+  object lblMask: TLabel
+    Left = 426
+    Top = 442
+    Width = 24
+    Height = 13
+    Caption = 'Mask'
+  end
   object eName: TEdit
     Left = 64
-    Top = 439
+    Top = 438
     Width = 81
     Height = 21
     Anchors = [akLeft, akBottom]
@@ -37,7 +51,7 @@ object fmMain: TfmMain
   end
   object cbOpen: TCheckBox
     Left = 167
-    Top = 441
+    Top = 440
     Width = 58
     Height = 17
     Anchors = [akLeft, akBottom]
@@ -57,10 +71,6 @@ object fmMain: TfmMain
     OnResize = pgControlResize
     object Debug: TTabSheet
       Caption = 'Debug'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object lbLogEntry: TListBox
         Left = 0
         Top = 0
@@ -110,7 +120,6 @@ object fmMain: TfmMain
         PageSize = 0
         TabOrder = 1
         OnChange = vScrollBarChange
-        OnScroll = vScrollBarScroll
       end
     end
     object Options: TTabSheet
@@ -163,6 +172,28 @@ object fmMain: TfmMain
         TabOrder = 1
       end
     end
+  end
+  object eMask: TEdit
+    Left = 456
+    Top = 438
+    Width = 120
+    Height = 21
+    TabOrder = 3
+  end
+  object eValue: TEdit
+    Left = 641
+    Top = 438
+    Width = 120
+    Height = 21
+    TabOrder = 4
+  end
+  object cbFilter: TCheckBox
+    Left = 400
+    Top = 440
+    Width = 20
+    Height = 17
+    TabOrder = 5
+    OnClick = cbFilterClick
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer

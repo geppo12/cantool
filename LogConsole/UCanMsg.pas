@@ -97,17 +97,12 @@ type
 
     public
     constructor Create(AList: TCanMsgList);
+    procedure Update;
     property Messages[AIndex: Integer]: TCanMsg read getMessages;
     property Top: Integer read FTop write setTop;
     property Count: Integer read getCount;
     property ViewSize: Integer read FViewSize write FViewSize;
   end;
-
-  TCanMsgViewFiltered = class(TCanMsgView)
-    public
-      constructor Create(AList: TCanMsgList; AFilter: TCanMsgFilter);
-  end;
-
 
 implementation
 
@@ -217,6 +212,9 @@ var
   LMax,
   LMid: Integer;
 begin
+  if FMapList.Count = 0 then
+    Exit(0);
+
   LMin := 0;
   LMax := FMapList.Count - 1;
 
@@ -261,15 +259,11 @@ begin
   FList := AList;
   FList.Filtered := false;
 end;
-{$ENDREGION}
 
-{$REGION 'TCanMsgViewFiltered'}
-constructor TCanMsgViewFiltered.Create(AList: TCanMsgList; AFilter: TCanMsgFilter);
+procedure TCanMsgView.Update;
 begin
-  FList := AList;
-  FList.Filter := AFilter;
-  FList.Filtered := true;
+  Top := FList.ConvertIndex(Top);
 end;
-{$REGION}
+{$ENDREGION}
 
 end.

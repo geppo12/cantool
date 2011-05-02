@@ -55,6 +55,12 @@ type
     Label4: TLabel;
     sgRawLog: TStringGrid;
     vScrollBar: TScrollBar;
+    eMask: TEdit;
+    eValue: TEdit;
+    lblValue: TLabel;
+    lblMask: TLabel;
+    cbFilter: TCheckBox;
+    procedure cbFilterClick(Sender: TObject);
     procedure cbOpenClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -64,8 +70,6 @@ type
         State: TGridDrawState);
     procedure Timer1Timer(Sender: TObject);
     procedure vScrollBarChange(Sender: TObject);
-    procedure vScrollBarScroll(Sender: TObject; ScrollCode: TScrollCode; var
-        ScrollPos: Integer);
   private
     { Private declarations }
     FOldPage: Integer;
@@ -83,8 +87,10 @@ type
     procedure addMsgToList(AMsg: TCanMsg);
     procedure setupOptions;
     procedure showOptions;
+    procedure showFilterControls(AOnOff: Boolean);
     procedure setupLogRowCount;
     procedure updateRowSize;
+    procedure updateScrollBar;
   public
     { Public declarations }
   end;
@@ -170,23 +176,31 @@ end;
 procedure TfmMain.pgControlChange(Sender: TObject);
 var
   LCanOpen: Boolean;
+
+  procedure setupCase(AShow: Boolean);
+  begin
+    // save options
+    setupOptions;
+    // show filter
+    showFilterControls(AShow);
+    FOldPage := pgControl.TabIndex;
+  end;
 begin
   LCanOpen := True;
   case TAppPages(pgControl.TabIndex) of
-    pgDebug,
-    pgCanLog: begin
-        // save options
-        setupOptions;
-        FOldPage := pgControl.TabIndex;
-      end;
-    pgOptions:
-      if FLink.Active then begin
-        pgControl.TabIndex := FOldPage;
-        MessageDlg('Cannot change setup with active link',mtError, [mbOk],0);
-      end else begin
-        LCanOpen := False;
-        showOptions;
-        FOldPage := pgControl.TabIndex;
+    pgDebug: setupCase(false);
+    pgCanLog: setupCase(true);
+
+    pgOptions: begin
+        showFilterControls(false);
+        if FLink.Active then begin
+          pgControl.TabIndex := FOldPage;
+          MessageDlg('Cannot change setup with active link',mtError, [mbOk],0);
+        end else begin
+          LCanOpen := False;
+          showOptions;
+          FOldPage := pgControl.TabIndex;
+        end;
       end;
   end;
   cbOpen.Enabled := LCanOpen;
@@ -232,11 +246,10 @@ begin
   end;
 end;
 
-procedure TfmMain.vScrollBarScroll(Sender: TObject; ScrollCode: TScrollCode;
-    var ScrollPos: Integer);
+procedure TfmMain.vScrollBarChange(Sender: TObject);
 begin
-  //FCanMsgView.Top := ScrollPos;
-  //sgRawLog.Invalidate;
+  FCanMsgView.Top := vScrollBar.Position;
+  sgRawLog.Invalidate;
 end;
 
 {$ENDREGION}
@@ -266,16 +279,43 @@ begin
   FLogger.LogDebug('AddMsgToList: %s',[AMsg.ToString]);
   FCanMsgList.Add(AMsg);
   if pgControl.TabIndex = Ord(pgCanLog) then begin
+    updateScrollBar;
     sgRawLog.Invalidate;
-    // Scroll count only not visible part
-    LScrollLen := FCanMsgList.Count - FCanMsgView.Count;
-    if LScrollLen = 0 then
-      vScrollBar.Visible := false
-    else begin
-      vScrollBar.Visible := true;
-      vScrollBar.Max := FCanMsgList.Count - FCanMsgView.Count;
-    end;
   end;
+end;
+
+procedure TfmMain.cbFilterClick(Sender: TObject);
+var
+  LFilter: TCanMsgFilter;
+begin
+  if cbFilter.Checked then
+    try
+      if (eMask.Text <> '') and (eValue.Text <> '') then begin
+        LFilter.MaskId := Cardinal(StrToInt(eMask.Text));
+        LFilter.ValueId := Cardinal(StrToInt(eValue.Text));
+        FCanMsgList.Filter := LFilter;
+        FCanMsgList.Filtered := true;
+        eMask.Enabled := false;
+        eValue.Enabled := false;
+        // resfresh control
+        FCanMsgView.Update;
+      end else
+        cbFilter.Checked := false;
+    except
+      on E: EConvertError do begin
+        LFilter := FCanMsgList.Filter;
+        eMask.Text := Format('0x%.8X',[LFilter.MaskId]);
+        eValue.Text := Format('0x%.8X',[LFilter.ValueId]);
+        cbFilter.Checked := false;
+      end;
+    end
+  else begin
+    FCanMsgList.Filtered := false;
+    eMask.Enabled := true;
+    eValue.Enabled := true;
+  end;
+  updateScrollBar;
+  sgRawLog.Invalidate;
 end;
 
 procedure TfmMain.setupOptions;
@@ -292,6 +332,15 @@ begin
   eNodeMask.Text   := Format('0x%.8X',[FSqzLogProcessor.NodeMask]);
 end;
 
+procedure TfmMain.showFilterControls(AOnOff: Boolean);
+begin
+  cbFilter.Visible := AOnOff;
+  lblMask.Visible  := AOnOff;
+  eMask.Visible    := AOnOff;
+  lblValue.Visible := AOnOff;
+  eValue.Visible   := AOnOff;
+end;
+
 procedure TfmMain.setupLogRowCount;
 begin
   sgRawLog.RowCount := sgRawLog.Height div sgRawLog.DefaultRowHeight;
@@ -304,10 +353,18 @@ begin
     ColWidths[2] := Width - (ColWidths[0]+ColWidths[1]+5);
 end;
 
-procedure TfmMain.vScrollBarChange(Sender: TObject);
+procedure TfmMain.updateScrollBar;
+var
+  LScrollLen: Integer;
 begin
-  FCanMsgView.Top := vScrollBar.Position;
-  sgRawLog.Invalidate;
+  // Scroll count only not visible part
+  LScrollLen := FCanMsgList.Count - FCanMsgView.Count;
+  if LScrollLen = 0 then
+    vScrollBar.Visible := false
+  else begin
+    vScrollBar.Visible := true;
+    vScrollBar.Max := LScrollLen;
+  end;
 end;
 
 {$ENDREGION}
