@@ -26,15 +26,13 @@
 unit UFileVersion;
 
 interface
-function VersionInformation(A4Digit: boolean = false; AShowBuild: Boolean = true): string;
+function VersionInformation(AShowBuild: Boolean = true): string;
 
 implementation
-// if defined use four digit (major, minor, revision, build
-{.$DEFINE VER4DIGIT}
 
 uses Forms,Windows,SysUtils;
 
-function VersionInformation(A4Digit: boolean; AShowBuild: Boolean): string;
+function VersionInformation(AShowBuild: Boolean): string;
 var
   sFileName: string;
   VerInfoSize: DWORD;
@@ -42,6 +40,7 @@ var
   VerValueSize: DWORD;
   VerValue: PVSFixedFileInfo;
   Dummy: DWORD;
+  LRelease: Integer;
 begin
   sFileName := Application.ExeName;
   VerInfoSize := GetFileVersionInfoSize(PChar(sFileName), Dummy);
@@ -52,10 +51,11 @@ begin
   begin
     Result := IntToStr(dwFileVersionMS shr 16);
     Result := Result + '.' + IntToStr(dwFileVersionMS and $FFFF);
-    if A4Digit then begin
-      Result := Result + '.' + IntToStr(dwFileVersionLS shr 16);
-      Result := Result + '.' + IntToStr(dwFileVersionLS and $FFFF);
-    end else if AShowBuild then
+    LRelease := dwFileVersionLS shr 16;
+    if LRelease <> 0 then
+      Result := Result + '.' + IntToStr(LRelease);
+
+    if AShowBuild then
       Result := Result + ' build ' + IntToStr(dwFileVersionLS and $FFFF);
   end;
   FreeMem(VerInfo, VerInfoSize);

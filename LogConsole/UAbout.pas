@@ -39,7 +39,7 @@ end;
 
 procedure TfmAbout.FormCreate(Sender: TObject);
 begin
-  lblAppName.Caption := lblAppName.Caption + VersionInformation(true);
+  lblAppName.Caption := lblAppName.Caption + VersionInformation;
 end;
 
 procedure TfmAbout.LinkLabel1LinkClick(Sender: TObject; const Link: string;
