@@ -206,32 +206,51 @@ end;
 
 function TNICanLink.readFromCan: NCTYPE_STATUS;
 var
+  LInvalidCount,
+  LErrorCount: Integer;
+  LValidRead: Boolean;
   LCanMsg: TCanMsg;
   LActualRead: Integer;
   LNumMsg: Integer;
   I: Integer;
 begin
-  Result := ncReadMult(
-         			FCanNetworkObj,
-        			sizeof(NCTYPE_CAN_STRUCT)*kNumObject,
-        			@FNICanBuffer,
-        			@LActualRead);
+  LInvalidCount := 0;
+  LErrorCount   := 0;
+  repeat
+    Result := ncReadMult(
+                FCanNetworkObj,
+                sizeof(NCTYPE_CAN_STRUCT)*kNumObject,
+                @FNICanBuffer,
+                @LActualRead);
 
-  LNumMsg := LActualRead div sizeof(NCTYPE_CAN_STRUCT);
+    LNumMsg := LActualRead div sizeof(NCTYPE_CAN_STRUCT);
 
-  for I := 0 to LNumMsg-1 do begin
-    // TODO 2 -cFEATURE : insert error control
-    // normal can frame
-    if FNICanBuffer[I].FrameType = 0 then begin
-      LCanMsg.ecmTime := int64NI2D(FNICanBuffer[I].Timestamp);
-      LCanMsg.ecmID  := FNICanBuffer[I].ArbitrationId;
-      LCanMsg.ecmLen := FNICanBuffer[I].DataLength;
-      // copy CAN data buffer
-      Move(FNICanBuffer[I].Data,LCanMsg.ecmData,8);
-      FReadMsgQueue.Enqueue(LCanMsg);
-    end else
-      FLogger.LogDebug('NICAN: Invalid frame (%d)',[FNICanBuffer[I].FrameType]);
-  end;
+    // if we don't have any massage this an empty *VALID* read
+    LValidRead := (LNumMsg = 0);
+
+    for I := 0 to LNumMsg-1 do begin
+      // TODO 2 -cFEATURE : insert error control
+      // normal can frame
+      if FNICanBuffer[I].FrameType = 0 then begin
+        LCanMsg.ecmTime := int64NI2D(FNICanBuffer[I].Timestamp);
+        LCanMsg.ecmID  := FNICanBuffer[I].ArbitrationId;
+        LCanMsg.ecmLen := FNICanBuffer[I].DataLength;
+        // copy CAN data buffer
+        Move(FNICanBuffer[I].Data,LCanMsg.ecmData,8);
+        FReadMsgQueue.Enqueue(LCanMsg);
+        LValidRead := true;
+      end else if FNICanBuffer[I].FrameType = 6 then
+        Inc(LErrorCount)
+      else
+        Inc(LInvalidCount);
+    end;
+  until LValidRead;
+
+  if (LErrorCount > 0) then
+    FLogger.LogDebug('NICAN: %d Error frame',[LErrorCount]);
+
+  if (LInvalidCount > 0) then
+    FLogger.LogDebug('NICAN: %d Invalid frame',[LInvalidCount]);
 end;
 
 function TNICanLink.statusToString(AStatus: NCTYPE_STATUS): string;
