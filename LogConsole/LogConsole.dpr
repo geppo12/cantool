@@ -11,7 +11,9 @@ uses
   UDbgLogger in '..\Common\UDbgLogger.pas',
   UFileVersion in '..\Common\UFileVersion.pas',
   UAbout in 'UAbout.pas' {fmAbout},
-  UFmFilters in 'UFmFilters.pas' {fmFilter};
+  UFmFilters in 'UFmFilters.pas' {fmFilter},
+  USequences in 'USequences.pas',
+  USplitterStr in 'USplitterStr.pas';
 
 {$R *.res}
 

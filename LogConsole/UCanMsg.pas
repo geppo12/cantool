@@ -135,8 +135,9 @@ function TCanMsg.ToString: string;
 var
   I: Integer;
 begin
-  Result := Format('ID=0x%08X L=%d D=',[ecmId,ecmLen]);
-  Result := formatData('.');
+  Result := Format('ID=0x%.8X L=%d',[ecmId,ecmLen]);
+  if ecmLen > 0 then
+    Result := Result+' D='+formatData('.');
 end;
 
 procedure TCanMsg.ToStrings(AStrings: TStrings);

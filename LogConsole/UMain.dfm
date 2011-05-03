@@ -51,17 +51,13 @@ object fmMain: TfmMain
     Top = 8
     Width = 758
     Height = 424
-    ActivePage = CanLog
+    ActivePage = TabSheet1
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 2
     OnChange = pgControlChange
     OnResize = pgControlResize
     object Debug: TTabSheet
       Caption = 'Debug'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object lbLogEntry: TListBox
         Left = 0
         Top = 0
@@ -75,10 +71,6 @@ object fmMain: TfmMain
     object CanLog: TTabSheet
       Caption = 'CanLog'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object sgRawLog: TStringGrid
         Left = 0
         Top = 0
@@ -113,13 +105,54 @@ object fmMain: TfmMain
         OnChange = vScrollBarChange
       end
     end
+    object TabSheet1: TTabSheet
+      Caption = 'Sequences'
+      ImageIndex = 2
+      object sSequenceResult: TShape
+        Left = 568
+        Top = 320
+        Width = 41
+        Height = 33
+      end
+      object cbSequence: TComboBox
+        Left = 24
+        Top = 328
+        Width = 145
+        Height = 21
+        Style = csDropDownList
+        TabOrder = 0
+      end
+      object btnSeqLoad: TButton
+        Left = 207
+        Top = 326
+        Width = 75
+        Height = 25
+        Caption = 'Load'
+        TabOrder = 1
+        OnClick = btnSeqLoadClick
+      end
+      object btnSeqGo: TButton
+        Left = 312
+        Top = 326
+        Width = 75
+        Height = 25
+        Caption = 'Go'
+        TabOrder = 2
+        OnClick = btnSeqGoClick
+      end
+      object btnSeqCancel: TButton
+        Left = 416
+        Top = 326
+        Width = 75
+        Height = 25
+        Caption = 'Cancel'
+        TabOrder = 3
+        OnClick = btnSeqCancelClick
+      end
+    end
     object Options: TTabSheet
       Caption = 'Options'
-      ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+      ImageIndex = 3
       object Label2: TLabel
         Left = 5
         Top = 19
@@ -186,7 +219,12 @@ object fmMain: TfmMain
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer
-    Left = 264
-    Top = 424
+    Left = 24
+    Top = 432
+  end
+  object odSequence: TOpenDialog
+    Filter = 'Sequence Files (*.seq)|*.seq'
+    Left = 56
+    Top = 432
   end
 end

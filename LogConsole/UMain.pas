@@ -30,12 +30,13 @@ interface
 {.$DEFINE WRITE_TEST}
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls,
+  Dialogs, StdCtrls, ExtCtrls, ComCtrls, Grids,
   UCanMsg,
   UDbgLogger,
   UFileList,
   USqzLogCore,
-  UNICanLink, ComCtrls, Grids;
+  USequences,
+  UNICanLink;
 
 type
   TfmMain = class(TForm)
@@ -57,7 +58,17 @@ type
     vScrollBar: TScrollBar;
     cbFilterEnable: TCheckBox;
     btnFilterEdit: TButton;
+    TabSheet1: TTabSheet;
+    cbSequence: TComboBox;
+    btnSeqLoad: TButton;
+    btnSeqGo: TButton;
+    sSequenceResult: TShape;
+    btnSeqCancel: TButton;
+    odSequence: TOpenDialog;
+    procedure btnSeqCancelClick(Sender: TObject);
     procedure btnFilterEditClick(Sender: TObject);
+    procedure btnSeqGoClick(Sender: TObject);
+    procedure btnSeqLoadClick(Sender: TObject);
     procedure cbFilterEnableClick(Sender: TObject);
     procedure cbOpenClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -72,7 +83,9 @@ type
   private
     { Private declarations }
     FOldPage: Integer;
+    FStopped: Boolean;
     FLogger: TDbgLogger;
+    FSequenceEngine: TSequenceEngine;
     FFileList: TFileNamesList;
     FLink: TNICanLink;
     FSqzLogProcessor: TSqzLogNetHandler;
@@ -82,6 +95,7 @@ type
     FCanMsgList: TCanMsgList;
     FCanMsgView: TCanMsgView;
     procedure print(ANodeId: Integer; AClass: TSqzLogClass; ATitle: string);
+    procedure sendMsg(AMsg: TCanMsg);
     procedure setupCanView(AView: TCanMsgView);
     procedure addMsgToList(AMsg: TCanMsg);
     procedure setupOptions;
@@ -141,12 +155,17 @@ procedure TfmMain.FormCreate(Sender: TObject);
 var
   LFile: string;
 begin
+  // get the logger intstance and initialize it
   FLogger := TDbgLogger.Instance;
   FLogger.InitEngine(leSmartInspect);
   FLogger.Enable := true;
 
   FLink := TNICanLink.Create;
   FLogger.LogMessage('Link inizialized');
+
+  // initialize sequence engine
+	FSequenceEngine := TSequenceEngine.Create;
+  FSequenceEngine.OnSendMessage := sendMsg;
 
   FSqzLogProcessor := TSqzLogNetHandler.Create;
   FSqzLogProcessor.OnPrint := print;
@@ -291,6 +310,71 @@ begin
 
   LFilterForm.Free;
 end;
+
+procedure TfmMain.btnSeqLoadClick(Sender: TObject);
+begin
+  if odSequence.Execute then begin
+    FSequenceEngine.Parser.LoadFromFile(odSequence.FileName);
+    FSequenceEngine.LoadNames(cbSequence.Items);
+    if cbSequence.Items.Count > 0 then
+      cbSequence.ItemIndex := 0;
+  end;
+end;
+
+procedure TfmMain.btnSeqGoClick(Sender: TObject);
+var
+  LMsg: TCanMsg;
+  LStepValid: Boolean;
+  seqName: string;
+
+  procedure enableSeqControl(AOnOff: Boolean);
+  begin
+    btnSeqCancel.Enabled := not AOnOff;
+    btnSeqGo.Enabled   := AOnOff;
+    btnSeqLoad.Enabled := AOnOff;
+    Timer1.Enabled     := AOnOff;
+  end;
+begin
+  // TODO 2 -cFEATURE : move this code inside a thread
+  seqName := cbSequence.Items.Strings[cbSequence.ItemIndex];
+  try
+    if FSequenceEngine.SetupSequence(seqName) then begin
+      FStopped := false;
+      FSequenceEngine.Reset;
+      FSequenceEngine.Start;
+      enableSeqControl(false);
+      Timer1.Enabled := false;
+      LStepValid := true;
+
+      //
+      while FLink.Active and LStepValid and not FStopped do begin
+        // process windows events
+        Application.ProcessMessages;
+        // process Can messages as triggers
+        if FLink.Read(LMsg) then begin
+          FSequenceEngine.Trigger(LMsg);
+          addMsgToList(LMsg);
+        end;
+        // execute program step
+        LStepValid := FSequenceEngine.ExecuteStep;
+      end;
+
+      // termino la sequenza ed in base al risultato segno lo stato
+      case FSequenceEngine.Terminate of
+        kTerminateFail: sSequenceResult.Brush.Color := clRed;
+        kTerminateSuccess: sSequenceResult.Brush.Color := clGreen;
+      end;
+    end;
+  finally
+    enableSeqControl(true);
+  end;
+end;
+
+procedure TfmMain.btnSeqCancelClick(Sender: TObject);
+begin
+  FStopped := true;
+end;
+
 {$ENDREGION}
 
 {$REGION 'Local procedures'}
@@ -302,6 +386,12 @@ begin
 
   lbLogEntry.Items.Add(LMessageString);
   FLogger.LogMessage('Message sqzlog: '+LMessageString);
+end;
+
+procedure TfmMain.sendMsg(AMsg: TCanMsg);
+begin
+  if FLink.Active then
+    FLink.Write(AMsg);  
 end;
 
 procedure TfmMain.setupCanView(AView: TCanMsgView);
