@@ -14,8 +14,6 @@ Console version is tested with NI USB-8473
 Why Delphi and not C++ ?
 
 1. Delphi is beautifull
-2. Create a NI-CAN driver in Delphi for people that need this. Warning: at moment I support only frame api
-
-You can downbload executables [here](http://github.com/downloads/geppo12/cantool/Binary.zip)
+2. Create a NI-CAN driver in Delphi for people that need this. Warning: at moment I support only Frame API
 
 For any question you can contact me: info@ing-monteleone.com
