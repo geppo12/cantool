@@ -51,7 +51,7 @@ object fmMain: TfmMain
     Top = 8
     Width = 758
     Height = 424
-    ActivePage = TabSheet1
+    ActivePage = Options
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 2
     OnChange = pgControlChange
@@ -108,46 +108,65 @@ object fmMain: TfmMain
     object TabSheet1: TTabSheet
       Caption = 'Sequences'
       ImageIndex = 2
+      DesignSize = (
+        750
+        396)
       object sSequenceResult: TShape
-        Left = 568
-        Top = 320
+        Left = 706
+        Top = 370
         Width = 41
-        Height = 33
+        Height = 25
+        Anchors = [akRight, akBottom]
       end
       object cbSequence: TComboBox
-        Left = 24
-        Top = 328
-        Width = 145
+        Left = 0
+        Top = 372
+        Width = 438
         Height = 21
         Style = csDropDownList
+        Anchors = [akLeft, akRight, akBottom]
         TabOrder = 0
       end
       object btnSeqLoad: TButton
-        Left = 207
-        Top = 326
+        Left = 455
+        Top = 370
         Width = 75
         Height = 25
+        Anchors = [akRight, akBottom]
         Caption = 'Load'
         TabOrder = 1
         OnClick = btnSeqLoadClick
       end
       object btnSeqGo: TButton
-        Left = 312
-        Top = 326
+        Left = 540
+        Top = 370
         Width = 75
         Height = 25
+        Anchors = [akRight, akBottom]
         Caption = 'Go'
+        Enabled = False
         TabOrder = 2
         OnClick = btnSeqGoClick
       end
       object btnSeqCancel: TButton
-        Left = 416
-        Top = 326
+        Left = 625
+        Top = 368
         Width = 75
         Height = 25
+        Anchors = [akRight, akBottom]
         Caption = 'Cancel'
+        Enabled = False
         TabOrder = 3
         OnClick = btnSeqCancelClick
+      end
+      object lbSeqOutText: TListBox
+        Left = 0
+        Top = 0
+        Width = 747
+        Height = 362
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        ItemHeight = 13
+        TabOrder = 4
       end
     end
     object Options: TTabSheet

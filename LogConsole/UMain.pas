@@ -65,6 +65,7 @@ type
     sSequenceResult: TShape;
     btnSeqCancel: TButton;
     odSequence: TOpenDialog;
+    lbSeqOutText: TListBox;
     procedure btnSeqCancelClick(Sender: TObject);
     procedure btnFilterEditClick(Sender: TObject);
     procedure btnSeqGoClick(Sender: TObject);
@@ -83,7 +84,7 @@ type
   private
     { Private declarations }
     FOldPage: Integer;
-    FStopped: Boolean;
+    FSeqTerminate: Boolean;
     FLogger: TDbgLogger;
     FSequenceEngine: TSequenceEngine;
     FFileList: TFileNamesList;
@@ -95,6 +96,7 @@ type
     FCanMsgList: TCanMsgList;
     FCanMsgView: TCanMsgView;
     procedure print(ANodeId: Integer; AClass: TSqzLogClass; ATitle: string);
+    procedure seqPrint(AString: string);
     procedure sendMsg(AMsg: TCanMsg);
     procedure setupCanView(AView: TCanMsgView);
     procedure addMsgToList(AMsg: TCanMsg);
@@ -104,15 +106,17 @@ type
     procedure setupLogRowCount;
     procedure updateRowSize;
     procedure updateScrollBar;
+    procedure changeLinkStatus(AActive: Boolean);
   public
     { Public declarations }
   end;
 
   // menmonic for pages
   TAppPages = (
-    pgDebug = 0,
-    pgCanLog = 1,
-    pgOptions = 2
+    pgDebug    = 0,
+    pgCanLog   = 1,
+    pgSequnces = 2,
+    pgOptions  = 3
   );
 
 const
@@ -137,12 +141,15 @@ begin
     try
       FLink.Name := eName.Text;
       FLink.Open;
+      changeLinkStatus(true);
     except
       on ENICanOpenError do
         cbOpen.Checked := false
     end;
-  end else
+  end else begin
     FLink.Close;
+    changeLinkStatus(false);
+  end;
 end;
 
 procedure TfmMain.FormDestroy(Sender: TObject);
@@ -166,7 +173,9 @@ begin
   // initialize sequence engine
 	FSequenceEngine := TSequenceEngine.Create;
   FSequenceEngine.OnSendMessage := sendMsg;
+  FSequenceEngine.OnOutText := seqPrint;
 
+  // initialize log processor engine
   FSqzLogProcessor := TSqzLogNetHandler.Create;
   FSqzLogProcessor.OnPrint := print;
 
@@ -197,6 +206,7 @@ procedure TfmMain.FormClose(Sender: TObject; var Action: TCloseAction);
 var
   LAbout: TForm;
 begin
+  FSeqTerminate := true;
   LAbout := TfmAbout.Create(self);
   LAbout.ShowModal;
 end;
@@ -339,7 +349,7 @@ begin
   seqName := cbSequence.Items.Strings[cbSequence.ItemIndex];
   try
     if FSequenceEngine.SetupSequence(seqName) then begin
-      FStopped := false;
+      FSeqTerminate := false;
       FSequenceEngine.Reset;
       FSequenceEngine.Start;
       enableSeqControl(false);
@@ -347,7 +357,7 @@ begin
       LStepValid := true;
 
       //
-      while FLink.Active and LStepValid and not FStopped do begin
+      while FLink.Active and LStepValid and not FSeqTerminate do begin
         // process windows events
         Application.ProcessMessages;
         // process Can messages as triggers
@@ -372,7 +382,7 @@ end;
 
 procedure TfmMain.btnSeqCancelClick(Sender: TObject);
 begin
-  FStopped := true;
+  FSeqTerminate := true;
 end;
 
 {$ENDREGION}
@@ -388,10 +398,15 @@ begin
   FLogger.LogMessage('Message sqzlog: '+LMessageString);
 end;
 
+procedure TfmMain.seqPrint(AString: string);
+begin
+  lbSeqOutText.Items.Add(AString);
+end;
+
 procedure TfmMain.sendMsg(AMsg: TCanMsg);
 begin
   if FLink.Active then
-    FLink.Write(AMsg);  
+    FLink.Write(AMsg);
 end;
 
 procedure TfmMain.setupCanView(AView: TCanMsgView);
@@ -456,6 +471,12 @@ begin
     vScrollBar.Visible := true;
     vScrollBar.Max := LScrollLen;
   end;
+end;
+
+procedure TfmMain.changeLinkStatus(AActive: Boolean);
+begin
+  btnSeqGo.Enabled := AActive;
+  btnSeqCancel.Enabled := AActive;
 end;
 
 {$ENDREGION}

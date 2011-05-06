@@ -103,14 +103,16 @@ uses
   Generics.Collections,
   Contnrs,
   SysUtils,
+  StrUtils,
   Character,
   Windows,
+  Types,
   UDbgLogger;
 
 const
   kForeverStr = 'FOREVER';
 
-  kKeywordTableSize = 17;
+  kKeywordTableSize = 18;
   kKeywordTable: array [0..kKeywordTableSize-1] of string = (
     'SEQUENCE',
     'DEFINE',
@@ -126,8 +128,7 @@ const
     'LOOP',
     'ENDLOOP',
     'EXITLOOP',
-    // TODO 1 -cSEQ : inserire comando print o logwrite
-  //	'PRINT',
+  	'PRINT',
     'ABORT',
     'CLEARQUEUE',
     'ENDSEQ'
@@ -151,6 +152,7 @@ type
     kKeyLoop,
     kKeyLoopend,
     kKeyExitloop,
+    kKeyPrint,
     kKeyAbort,
     kKeyClearQueue,
     kKeyEndseq
@@ -161,28 +163,6 @@ type
     stsStartSeq,
     stsAddMsg
   );
-(*
-class TEgoMsgObjSeq : public TEgoMsgObj {
-	private:
-	int FCmdMask;
-	int FNodeMask;
-	unsigned char FDataMask[8];
-
-	bool __fastcall getHasDataMask();
-
-	public:
-	__fastcall TEgoMsgObjSeq();
-	virtual bool __fastcall Match(TEgoMsgObj *AMsg);
-	bool __fastcall Parse(AnsiString AString);
-
-	__property int CmdMask = { read=FCmdMask };
-	__property int NodeMask = { read=FNodeMask };
-	__property bool HasDataMask = { read=getHasDataMask };
-};
-*)
-  TSequenceEngineInternal = class(TSequenceEngine)
-    public
-  end;
 
   TSeqCanMsgObj = class
     strict private
@@ -238,22 +218,6 @@ class TEgoMsgObjSeq : public TEgoMsgObj {
     // di default il trigger non scatta mai
     function FireTrigger(AMsg: TCanMsg): Boolean; virtual;
   end;
-
-(*
-  class TElementStack : public TObject {
-    private:
-    TObjectList *FList;
-
-    public:
-    __fastcall TElementStack();
-    __fastcall ~TElementStack();
-    void __fastcall Clear() { FList->Clear(); }
-    int __fastcall GetCount() { return FList->Count; }
-    void __fastcall PushEl(TSeqEl *AElement);
-    void __fastcall PopEl();
-    TSeqEl* __fastcall Top();
-  };
-*)
 
   // statment MSG
   TMsgEl = class(TSeqEl)
@@ -377,6 +341,15 @@ class TEgoMsgObjSeq : public TEgoMsgObj {
     procedure Execute; override;
   end;
 
+  // statment PRINT
+  TPrintEl = class(TSeqEl)
+    private
+    FText: string;
+    public
+    constructor Create(AStr: string; AOwner: TSequence);
+    procedure Execute; override;
+  end;
+
   // statment ENDSEQ
   TEndSeqEl = class(TSeqEl)
     public
@@ -460,14 +433,27 @@ class TEgoMsgObjSeq : public TEgoMsgObj {
 {$REGION 'TSeqCanMsgObj'}
 procedure TSeqCanMsgObj.parse(var ACanMsg: TCanMsg; AStr: string);
 var
+  LDataStr: TStringDynArray;
 	value: string;
 	retVal: Boolean; // = true;
 	i: Integer;
+
+  procedure setDataValue(ADataStr: string; AIndex:  Integer);
+  begin
+    if ADataStr = '*' then begin
+      FMaskMsg.ecmData[AIndex] := 0;
+      FCanMsg.ecmData[AIndex]  := 0;
+      // +1 because FCanMsg.ecmLen will be inc at the end of cycle
+      FMaskMsg.ecmLen := FCanMsg.ecmLen+1;
+    end else
+      FCanMsg.ecmData[AIndex]  := StrToInt(ADataStr);
+  end;
+
 begin
 	TDbgLogger.Instance.EnterMethod(self,'parse');
 	TDbgLogger.Instance.LogVerbose('SEQ: Parse msg <%s>',[AStr]);
 
-  FAuxStringList.CommaText := AStr;
+  FAuxStringList.DelimitedText := AStr;
   try
     value := FAuxStringList.Values['ID'];
     if value <> '' then
@@ -479,22 +465,25 @@ begin
     if value <> '' then
       FMaskMsg.ecmId := StrToInt(value);
 
-    FCanMsg.ecmLen := 0;
-    for i := 0 to 7 do begin
-      value := FAuxStringList.Values['D'+IntToStr(i)];
-      if value <> '' then begin
-        if value = '*' then begin
-          FMaskMsg.ecmData[i] := 0;
-          FCanMsg.ecmData[i]  := 0;
-          // +1 because FCanMsg.ecmLen will be inc at the end of cycle
-          FMaskMsg.ecmLen := FCanMsg.ecmLen+1;
-        end else
-          FCanMsg.ecmData[i]  := StrToInt(value);
-        Inc(FCanMsg.ecmLen);
-      end else if FAuxStringList.IndexOfName('DO') > 0 then
+    value := FAuxStringList.Values['DATA'];
+    { check for data in form 'DATA=xx,xx,xx,xx }
+    if value <> '' then begin
+      LDataStr := SplitString(value,',');
+      FCanMsg.ecmLen := Length(LDataStr);
+      for I := 0 to FCanMsg.ecmLen-1 do
+        setDataValue(LDataStr[I],i)
+    end else begin
+      { get data in form D0=xx D1=XX }
+      FCanMsg.ecmLen := 0;
+      for i := 0 to 7 do begin
+        value := FAuxStringList.Values['D'+IntToStr(i)];
+        if value <> '' then
+          setDataValue(value,i)
+        else if FAuxStringList.IndexOfName('DO') > 0 then
           raise EConvertError.Create('Use zero instead O letter into D number')
-      else
-        Break;
+        else
+          Break;
+      end;
     end;
   finally
   	TDbgLogger.Instance.LeaveMethod(self,'parse');
@@ -545,7 +534,10 @@ begin
     if (FCanMsg.ecmID and ecmID) <> (AMsg.ecmID and ecmID) then
       Exit(false);
 
-    for I := 0 to 7 do begin
+    if AMsg.ecmLen < ecmLen then
+      Exit(false);
+
+    for I := 0 to ecmLen - 1 do begin
         if (FCanMsg.ecmData[I] and ecmID) <> (AMsg.ecmdata[I] and ecmID) then
           Exit(false);
     end;
@@ -616,6 +608,7 @@ begin
   Result := FMsgObj.Match(AMsg);
 end;
 
+// TODO 2 -cFIXME : inserire log print nei metodi ?
 procedure TSeqEl.Timeout; 
 begin
 end;
@@ -704,16 +697,18 @@ var
 begin
 	TDbgLogger.Instance.LogVerbose('SEQ: compile CASE (%s)',[GetMsgObj.ToString]);
 	select := FOwnerSeq.GetSelect();
-	//SI_INFO(SiMain->LogAssert(select != NULL,"SEQ: [TCaseEl::Compile()] no SELECT element"));
 	if select <> nil then
 		select.AddCase(self)
-	else
+	else begin
+    TDbgLogger.Instance.LogWarning('SEQ: CASE (%s) not found',[GetMsgObj.ToString]);
 		raise ECompileError.Create('CASE');
+  end;
 end;
 
 // statment BREAK
 constructor TBreakEl.Create(AStr: string; AOwner: TSequence);
 begin
+  // TODO 3 -cPORTING : set to delete
   inherited Create(AOwner);
 end;
 
@@ -729,6 +724,7 @@ end;
 // statment EXPIRED
 constructor TExpiredEl.Create(AStr: string; AOwner: TSequence);
 begin
+  // TODO 3 -cPORTING : set to delete
   inherited Create(AOwner);
 end;
 
@@ -748,6 +744,7 @@ end;
 // statment DEFAULT
 constructor TDefaultEl.Create(AStr: string; AOwner: TSequence);
 begin
+  // TODO 3 -cPORTING : set to delete
   inherited Create(AOwner);
 end;
 
@@ -766,6 +763,7 @@ end;
 // statment ENDSEL
 constructor TEndselEl.Create(AStr: string; AOwner: TSequence);
 begin
+  // TODO 3 -cPORTING : set to delete
   inherited Create(AOwner);
 end;
 
@@ -984,9 +982,22 @@ begin
 	FOwnerSeq.EndLoop();
 end;
 
+// statment PRINT
+constructor TPrintEl.Create(AStr: string; AOwner: TSequence);
+begin
+  inherited Create(AOwner);
+  FText := AStr;
+end;
+
+procedure TPrintEl.Execute;
+begin
+  FOwnerSeq.SendOutText(FText);
+end;
+
 // statment ABORT
 constructor TAbortEl.Create(AStr: string; AOwner: TSequence);
 begin
+  // TODO 3 -cPORTING : set to delete
   inherited Create(AOwner);
   FTerminateResult := kTerminateSuccess;
 end;
@@ -1277,6 +1288,7 @@ end;
  
 procedure TSequenceEngine.SendMsg(ACanMsg: TCanMsg);
 begin
+  TDbgLogger.Instance.LogVerbose('SEQ: send message ''%s''',[ACanMsg.ToString]);
   if Assigned(FOnSendMessage) then
     FOnSendMessage(ACanMsg);
 end;
@@ -1508,7 +1520,8 @@ begin
               deleteSeq := false;
               if key <> kKeyInvalid then begin
                 Assert(seq <> nil);
-                msgStr := FSplitter.GetArgument(1);
+                // TODO 2 -cFIXME : gestire meglio i parametri relativi ad un comando
+                msgStr := FSplitter.LineFromArg(1);
                 try
                   seqEl := nil;
                   // gli elementi viengo aggiunti alla sequenza nel costruttore
@@ -1525,7 +1538,7 @@ begin
                     kKeyLoop: seqEl := TLoopEl.Create(msgStr,seq);
                     kKeyLoopend: seqEl := TEndLoopEl.Create(msgStr,seq);
                     kKeyExitloop: seqEl :=  TExitLoopEl.Create(msgStr,seq);
-      //								case kKeyPrint: seqEl := TPrintEl.Create(msgStr,seq);
+                    kKeyPrint: seqEl := TPrintEl.Create(msgStr,seq);
                     kKeyAbort: seqEl := TAbortEl.Create(msgStr,seq);
                     kKeyClearQueue: seqEl := TClearQueueEl.Create(msgStr,seq);
                     kKeyEndseq: begin
