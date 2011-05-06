@@ -356,16 +356,6 @@ type
     procedure Execute; override;
   end;
 
-  //#define kMaxLoopDepth 10
-
-  TElementStack = class(TStack<TSeqEl>)
-    private
-    function getTop: TSeqEl;
-
-    public
-    property Top: TSeqEl read getTop;
-  end;
-
   TSequence = class(TSeqObj)
     private
     FEngine: TSequenceEngine;
@@ -377,8 +367,8 @@ type
     FTimerTrigger: TSeqEl;
     FTrigger: TSeqEl;
     FEndSequence: TSeqEl;
-    FLoopStack: TElementStack;
-    FSelectStack: TElementStack;
+    FLoopStack: TStack<TSeqEl>;
+    FSelectStack: TStack<TSeqEl>;
 
     procedure clearData;
     procedure clearTrigger;
@@ -985,12 +975,6 @@ end;
 {$ENDREGION}
 {$REGION 'TSequence implementation'}
 
-function TElementStack.getTop: TSeqEl;
-begin
-  Result := Pop;
-  Push(Result);
-end;
-
 procedure TSequence.clearData;
 begin
 	FData.clear;
@@ -1014,8 +998,8 @@ begin
   FName          := AName;
   FEngine        := AEngine;
 	FIncomingEventQueue  := TQueue<TCanMsg>.Create;
-	FLoopStack     := TElementStack.Create;
-	FSelectStack   := TElementStack.Create;
+	FLoopStack     := TStack<TSeqEl>.Create;
+	FSelectStack   := TStack<TSeqEl>.Create;
   FData          := TObjectList<TSeqEl>.Create;
 end;
 
@@ -1173,7 +1157,7 @@ end;
 
 function TSequence.GetLoop: TLoopEl;
 begin
- Result := FLoopStack.Top as TLoopEl;
+ Result := FLoopStack.Peek as TLoopEl;
 end;
 
 procedure TSequence.EndLoop;
@@ -1188,7 +1172,7 @@ end;
 
 function TSequence.GetSelect: TSelectEl;
 begin
-  Result := FSelectStack.Top as TSelectEl;
+  Result := FSelectStack.Peek as TSelectEl;
 end;
 
 procedure TSequence.EndSelect;
