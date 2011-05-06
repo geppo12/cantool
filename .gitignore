@@ -3,3 +3,4 @@
 *.dcu
 *.obj
 *.~*
+examples/in_out8/
