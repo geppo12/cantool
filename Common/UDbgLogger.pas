@@ -228,6 +228,9 @@ end;
 
 procedure TDbgLogger.InitEngine(AEngine: TDbgLoggerType);
 begin
+  FLoggerEngine.Free;
+  FLoggerEngine := nil;
+
   case AEngine of
     leWindows: FLoggerEngine := TDbgLoggerEngineWin.Create;
     leSmartInspect:
