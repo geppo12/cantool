@@ -256,28 +256,24 @@ type
   // statment BREAK
   TBreakEl = class(TSeqEl)
 	public
-    constructor Create(AStr: string; AOwner: TSequence); //: TSeqEl(AOwner) {}
     procedure Execute; override;
   end;
 
   // statment EXPIRED
   TExpiredEl = class(TSeqEl)
 	public
-    constructor Create(AStr: string; AOwner: TSequence); //: TSeqEl(AOwner) {}
     procedure Compile; override;
   end;
 
   // statment DEFAULT
   TDefaultEl = class(TSeqEl)
     public
-    constructor Create(AStr: string; AOwner: TSequence); //: TSeqEl(AOwner) {}
     procedure Compile; override;
   end;
 
   // statment ENDSEL
   TEndselEl = class(TSeqEl)
     public
-    constructor Create(AStr: string; AOwner: TSequence); //: TSeqEl(AOwner) {}
     procedure Compile; override;
     procedure Execute; override;
   end;
@@ -320,7 +316,6 @@ type
   // statment ENDLOOP
   TEndLoopEl = class(TSeqEl)
     public
-    constructor Create(AStr: string; AOwner: TSequence);
     procedure Compile; override;
     procedure Execute; override;
   end;
@@ -328,7 +323,6 @@ type
   // statment EXITLOOP
   TExitLoopEl = class(TSeqEl)
     public
-    constructor Create(AStr: string; AOwner: TSequence);
     procedure Compile; override;
   end;
 
@@ -353,14 +347,12 @@ type
   // statment ENDSEQ
   TEndSeqEl = class(TSeqEl)
     public
-    constructor Create(AStr: string; AOwner: TSequence);
     procedure Compile; override;
   end;
 
   // statment CLEARQUEUE
   TClearQueueEl = class(TSeqEl)
     public
-    constructor Create(AStr: string; AOwner: TSequence);
     procedure Execute; override;
   end;
 
@@ -706,12 +698,6 @@ begin
 end;
 
 // statment BREAK
-constructor TBreakEl.Create(AStr: string; AOwner: TSequence);
-begin
-  // TODO 3 -cPORTING : set to delete
-  inherited Create(AOwner);
-end;
-
 procedure TBreakEl.Execute;
 begin
 	TDbgLogger.Instance.LogVerbose('"SEQ: execute BREAK');
@@ -722,12 +708,6 @@ begin
 end;
 
 // statment EXPIRED
-constructor TExpiredEl.Create(AStr: string; AOwner: TSequence);
-begin
-  // TODO 3 -cPORTING : set to delete
-  inherited Create(AOwner);
-end;
-
 procedure TExpiredEl.Compile;
 var
   select: TSelectEl;
@@ -742,12 +722,6 @@ begin
 end;
 
 // statment DEFAULT
-constructor TDefaultEl.Create(AStr: string; AOwner: TSequence);
-begin
-  // TODO 3 -cPORTING : set to delete
-  inherited Create(AOwner);
-end;
-
 procedure TDefaultEl.Compile;
 var
   select: TSelectEl;
@@ -760,14 +734,7 @@ begin
 		raise ECompileError.Create('DEFAULT');
 end;
 
-// statment ENDSEL
-constructor TEndselEl.Create(AStr: string; AOwner: TSequence);
-begin
-  // TODO 3 -cPORTING : set to delete
-  inherited Create(AOwner);
-end;
-
-procedure TEndselEl.Compile; 
+procedure TEndselEl.Compile;
 var
   el: TSeqEl;
 begin
@@ -926,12 +893,6 @@ begin
 end;
 
 // statment ENDLOOP
-constructor TEndLoopEl.Create(AStr: string; AOwner: TSequence);
-begin
-  // TODO 3 -cPORTING : set to delete
-  inherited Create(AOwner);
-end;
-
 procedure TEndLoopEl.Compile;
 var
   el: TSeqEl;
@@ -969,12 +930,6 @@ begin
 end;
 
 // statment EXITLOOP
-constructor TExitLoopEl.Create(AStr: string; AOwner: TSequence);
-begin
-  // TODO 3 -cPORTING : set to delete
-  inherited Create(AOwner);
-end;
-
 procedure TExitLoopEl.Compile;
 begin
 	TDbgLogger.Instance.LogVerbose('SEQ: execute EXITLOOP');
@@ -997,7 +952,6 @@ end;
 // statment ABORT
 constructor TAbortEl.Create(AStr: string; AOwner: TSequence);
 begin
-  // TODO 3 -cPORTING : set to delete
   inherited Create(AOwner);
   FTerminateResult := kTerminateSuccess;
 end;
@@ -1015,12 +969,6 @@ begin
 end;
 
 // statment ENDSEQ
-constructor TEndSeqEl.Create(AStr: string; AOwner: TSequence);
-begin
-  // TODO 3 -cPORTING : set to delete
-  inherited Create(AOwner);
-end;
-
 procedure TEndSeqEl.Compile;
 begin
 	TDbgLogger.Instance.LogVerbose('SEQ: compile ENDSEQ');
@@ -1028,12 +976,6 @@ begin
 end;
 
 // statment CLEARQUEUE
-constructor TClearQueueEl.Create(AStr: string; AOwner: TSequence);
-begin
-  // TODO 3 -cPORTING : set to delete
-  inherited Create(AOwner);
-end;
-
 procedure TClearQueueEl.Execute;
 begin
 	TDbgLogger.Instance.LogVerbose('SEQ: Execute CLEARQUEUE');
@@ -1530,19 +1472,19 @@ begin
                     kKeyDelay:  seqEl := TDelayEl.Create(msgStr,seq);
                     kKeySelect: seqEl := TSelectEl.Create(msgStr,seq);
                     kKeyCase: seqEl := TCaseEl.Create(msgStr,seq);
-                    kKeyBreak: seqEl := TBreakEl.Create(msgStr,seq);
-                    kKeyExpired: seqEl := TExpiredEl.Create(msgStr,seq);
-                    kKeyDefault: seqEl := TDefaultEl.Create(msgStr,seq);
-                    kKeyEndsel: seqEl := TEndselEl.Create(msgStr,seq);
+                    kKeyBreak: seqEl := TBreakEl.Create(seq);
+                    kKeyExpired: seqEl := TExpiredEl.Create(seq);
+                    kKeyDefault: seqEl := TDefaultEl.Create(seq);
+                    kKeyEndsel: seqEl := TEndselEl.Create(seq);
                     kKeyWaitmsg: seqEl := TWaitEl.Create(msgStr,seq);
                     kKeyLoop: seqEl := TLoopEl.Create(msgStr,seq);
-                    kKeyLoopend: seqEl := TEndLoopEl.Create(msgStr,seq);
-                    kKeyExitloop: seqEl :=  TExitLoopEl.Create(msgStr,seq);
+                    kKeyLoopend: seqEl := TEndLoopEl.Create(seq);
+                    kKeyExitloop: seqEl :=  TExitLoopEl.Create(seq);
                     kKeyPrint: seqEl := TPrintEl.Create(msgStr,seq);
                     kKeyAbort: seqEl := TAbortEl.Create(msgStr,seq);
-                    kKeyClearQueue: seqEl := TClearQueueEl.Create(msgStr,seq);
+                    kKeyClearQueue: seqEl := TClearQueueEl.Create(seq);
                     kKeyEndseq: begin
-                      seqEl := TEndSeqEl.Create(msgStr,seq);
+                      seqEl := TEndSeqEl.Create(seq);
                       if seqEl <> nil then
                         // procedura di terminazione della sequenza
                         seq.Add(seqEl);
