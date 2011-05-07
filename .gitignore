@@ -3,4 +3,12 @@
 *.dcu
 *.obj
 *.~*
-examples/in_out8/
+*.identcache
+*.dsk
+*.tds
+*.local
+*.ppk
+*.public_key
+*.seq
+examples/
+firmware/
