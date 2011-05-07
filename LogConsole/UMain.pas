@@ -227,7 +227,11 @@ begin
   LCanOpen := True;
   case TAppPages(pgControl.TabIndex) of
     pgDebug: setupCase(false);
-    pgCanLog: setupCase(true);
+    pgCanLog: begin
+        setupCase(true);
+        updateScrollBar;
+        sgRawLog.Invalidate;
+      end;
 
     pgOptions: begin
         showFilterControls(false);
