@@ -338,6 +338,7 @@ end;
 procedure TfmMain.btnSeqGoClick(Sender: TObject);
 var
   LMsg: TCanMsg;
+  LEvent: TTriggerEvent;
   LStepValid: Boolean;
   seqName: string;
 
@@ -366,7 +367,9 @@ begin
         Application.ProcessMessages;
         // process Can messages as triggers
         if FLink.Read(LMsg) then begin
-          FSequenceEngine.Trigger(LMsg);
+          LEvent.EventType := kTriggerMsgEv;
+          LEvent.Msg       := LMsg;
+          FSequenceEngine.Trigger(LEvent);
           addMsgToList(LMsg);
         end;
         // execute program step

@@ -19,6 +19,17 @@ type
     property Name: string read FName;
   end;
 
+  TTriggerEventType = (
+    kTriggerTimeEv,
+    kTriggerMsgEv
+  );
+
+  TTriggerEvent = record
+    case EventType: TTriggerEventType of
+      kTriggerTimeEv: (Timeout: Cardinal);
+      kTriggerMsgEv: (Msg: TCanMsg);
+  end;
+
   TSequenceParser = class;
 
   TTerminateState = (
@@ -64,8 +75,7 @@ type
     // operazioni sulle sequenze
     procedure Reset;
     function ExecuteStep: Boolean;
-    procedure Trigger(ACanMsg: TCanMsg);
-    function Waiting: Boolean;
+    procedure Trigger(AEvent: TTriggerEvent);
 
     property OnSendMessage: TSeqSendMsgEv read FOnSendMessage write FOnSendMessage;
     property OnOutText: TSeqOutTextEv read FOnOutText write FOnOutText;
@@ -100,6 +110,7 @@ type
 implementation
 
 uses
+  Generics.Defaults,
   Generics.Collections,
   Contnrs,
   SysUtils,
@@ -177,14 +188,81 @@ type
     class constructor Create;
     class destructor Destroy;
     constructor Create(ACanMsg: TCanMsg); overload;
+    constructor Create(ACanMsgObj: TSeqCanMsgObj); overload;
     constructor Create(ACanMsgStr: string); overload;
-    function Match(AMsg: TCanMsg): Boolean;
+    function Match(AMsg: TCanMsg): Boolean; overload;
     function ToString: string; override;
     property CanMsg: TCanMsg read FCanMsg;
   end;
 
   // forward declaration
   TSequence = class;
+  TSeqEl = class;
+
+  TTriggerObject = class
+    private
+    FOwner: TSeqEl;
+
+    protected
+    property Owner: TSeqEl read FOwner;
+
+    public
+    constructor Create(AOwner: TSeqEl);
+    function Activate(AEvent: TTriggerEvent): Boolean; virtual; abstract;
+    //property Owner: TSeqEl read FOwner;
+  end;
+
+  TTriggerMsg = class(TTriggerObject)
+    private
+    FMsgObj: TSeqCanMsgObj;
+    FCanMsg: TCanMsg;
+
+
+    public
+    constructor Create(AEl: TSeqEl; AMsgObj: TSeqCanMsgObj);
+    destructor Destroy; override;
+    function Activate(AEvent: TTriggerEvent): Boolean; override;
+  end;
+
+  TSelectEl = class;
+
+  TTriggerSelect = class(TTriggerObject)
+    public
+    function Activate(AEvent: TTriggerEvent): Boolean; override;
+  end;
+
+  TTriggerTime = class(TTriggerObject)
+    public
+    FTimeout: Cardinal;
+
+    public
+    constructor Create(AEl: TSeqEl; ADelay: Cardinal);
+    function Activate(AEvent: TTriggerEvent): Boolean; override;
+
+    property Timeout: Cardinal read FTimeout;
+  end;
+
+  TTriggerEngine = class
+    private
+    FTriggerList: TObjectList<TTriggerObject>;
+    FTimeout: Cardinal;
+
+    function getWaiting: Boolean; inline;
+
+    public
+    constructor Create;
+    destructor Destroy; override;
+    {* add a trigger object
+       @param AObj trigger object to add }
+    procedure AddTrigger(AObj: TTriggerObject);
+    {* trigger the engine
+       @param AObj object to trigger engine }
+    procedure Trigger(AEvent: TTriggerEvent);
+    procedure Reset;
+    {* used to update time ticks }
+    procedure TimeTicks; inline;
+    property Waiting: Boolean read getWaiting;
+  end;
 
   // root class per gli elementi di sequenza.
   TSeqEl = class
@@ -215,8 +293,7 @@ type
     // l' elemento è stato aggiunto ad una sequenza;
     procedure Compile; virtual;
     function StringEl: string; virtual;
-    // di default il trigger non scatta mai
-    function FireTrigger(AMsg: TCanMsg): Boolean; virtual;
+    function TriggerCallback(AEvent: TTriggerEvent): Boolean; virtual;
   end;
 
   // statment MSG
@@ -243,7 +320,6 @@ type
   	public
     constructor Create(AStr: string; AOwner: TSequence);
     procedure Execute; override;
-    function FireTrigger(AMsg: TCanMsg): Boolean; override;
   end;
 
   // statment CASE
@@ -294,10 +370,10 @@ type
     procedure Compile; override;
     procedure Execute; override;
     procedure Timeout(); override;
-    function FireTrigger(AMsg: TCanMsg): Boolean; override;
+    function TriggerCallback(AEvent: TTriggerEvent): Boolean; override;
     procedure AddCase(ACaseEl: TCaseEl);
-    procedure SetDefault(AElement: TSeqEl); { FDefaultEl = AElement; }
-    procedure SetExpired(AElement: TSeqEl); { FExpiredEl = AElement; }
+    procedure SetDefault(AElement: TSeqEl);
+    procedure SetExpired(AElement: TSeqEl);
   end;
 
   // statment LOOP
@@ -359,19 +435,17 @@ type
   TSequence = class(TSeqObj)
     private
     FEngine: TSequenceEngine;
+    FTriggerEngine: TTriggerEngine;
     FIncomingEventQueue: TQueue<TCanMsg>;
     FData: TObjectList<TSeqEl>;
     FSequenceResult: TTerminateState;
     FProgramCounter: Integer;
-    FTimer: Integer;
-    FTimerTrigger: TSeqEl;
-    FTrigger: TSeqEl;
+    FTriggerList: TObjectList<TTriggerObject>;
     FEndSequence: TSeqEl;
     FLoopStack: TStack<TSeqEl>;
     FSelectStack: TStack<TSeqEl>;
 
     procedure clearData;
-    procedure clearTrigger;
     function getCount: Integer;
 
     public
@@ -385,13 +459,11 @@ type
     procedure SetResult(AResult: TTerminateState);
     function GetResult: TTerminateState;
     function ExecuteStep: Boolean;
-    procedure Trigger(AMsg: TCanMsg);
+    procedure Trigger(AEvent: TTriggerEvent); inline;
+    procedure AddTrigger(ATrigger: TTriggerObject); inline;
     procedure ClearIncomingEvents;
-    function Waiting: Boolean;
     function IsValid(): Boolean;
-    procedure DoGoto(ANewAddress: Integer);
-    procedure SetTimeout(ATrigger: TSeqEl; ATimeMS: Cardinal);
-    procedure SetTrigger(ATrigger: TSeqEl);
+    procedure DoGoto(ANewAddress: Integer); inline;
     procedure SetLoop(ALoop: TSeqEl);
     function GetLoop: TLoopEl;
     procedure EndLoop;
@@ -404,8 +476,7 @@ type
 
   ECreateError = class(Exception)
 	  public
-    constructor Create(AError: string); {overload;}// : Exception(AnsiString("Create error ")+AError) {};
-    //constructor Create(char* AError); overload; // : Exception(AnsiString("Create error ")+AError) {};
+    constructor Create(AError: string);
   end;
   ECompileError = class(Exception);
 
@@ -487,6 +558,12 @@ begin
   FCanMsg := ACanMsg;
 end;
 
+constructor TSeqCanMsgObj.Create(ACanMsgObj: TSeqCanMsgObj);
+begin
+  FCanMsg  := ACanMsgObj.FCanMsg;
+  FMaskMsg := ACanMsgObj.FMaskMsg;
+end;
+
 constructor TSeqCanMsgObj.Create(ACanMsgStr: string);
 var
   I: Integer;
@@ -529,6 +606,124 @@ end;
 function TSeqCanMsgObj.ToString: string;
 begin
   Result := FCanMsg.ToString + ' mask: ' + FMaskMsg.ToString;
+end;
+
+{$ENDREGION}
+
+{$REGION 'Trigger implementation'}
+// trigger msg
+
+constructor TTriggerObject.Create(AOwner: TSeqEl);
+begin
+  FOwner := AOwner;
+end;
+
+constructor TTriggerMsg.Create(AEl: TSeqEl; AMsgObj: TSeqCanMsgObj);
+begin
+  inherited Create(AEl);
+  FMsgObj := AMsgObj;
+end;
+
+destructor TTriggerMsg.Destroy;
+begin
+  FMsgObj.Free;
+end;
+
+function TTriggerMsg.Activate(AEvent: TTriggerEvent): Boolean;
+begin
+  if (FMsgObj <> nil) and (AEvent.EventType = kTriggerMsgEv) then
+    Result := FMsgObj.Match(AEvent.Msg)
+  else
+    Result := false;
+end;
+
+// trigger select
+function TTriggerSelect.Activate(AEvent: TTriggerEvent): Boolean;
+begin
+  if AEvent.EventType = kTriggerMsgEv then
+    Result := Owner.TriggerCallback(AEvent)
+  else
+    Result := false;
+end;
+
+// trigger time
+constructor TTriggerTime.Create(AEl: TSeqEl; ADelay: Cardinal);
+begin
+  inherited Create(AEl);
+  FTimeout := GetTickCount + ADelay;
+end;
+
+function TTriggerTime.Activate(AEvent: TTriggerEvent): Boolean;
+begin
+  if AEvent.EventType = kTriggerTimeEv then begin
+    Result := AEvent.Timeout >= FTimeout;
+    if Result then
+      Owner.TriggerCallback(AEvent);
+  end else
+    Result := false;
+end;
+
+// Engine
+function TTriggerEngine.getWaiting: Boolean;
+begin
+  Result := FTriggerList.Count > 0;
+end;
+
+constructor TTriggerEngine.Create;
+begin
+  FTriggerList := TObjectList<TTriggerObject>.Create;
+  FTimeout := MaxInt;
+end;
+
+
+destructor TTriggerEngine.Destroy;
+begin
+  FTriggerList.Free;
+end;
+
+procedure TTriggerEngine.AddTrigger(AObj: TTriggerObject);
+begin
+  TDbgLogger.Instance.LogVerbose('SEQ: Add trigger %s',[AObj.ToString]);
+  FTriggerList.Add(AObj);
+  if AObj is TTriggerTime then begin
+    if TTriggerTime(AObj).Timeout < FTimeout then
+      FTimeout := TTriggerTime(AObj).Timeout;
+  end;
+end;
+
+procedure TTriggerEngine.Trigger(AEvent: TTriggerEvent);
+var
+  LTrigger: TTriggerObject;
+  FFound: Boolean;
+begin
+  FFound := false;
+  for LTrigger in FTriggerList do
+    if LTrigger.Activate(AEvent) then begin
+      FFound := true;
+      Break;
+    end;
+
+  if FFound then
+    Reset;
+end;
+
+procedure TTriggerEngine.Reset;
+begin
+  FTriggerList.Clear;
+  FTimeout := MaxInt;
+end;
+
+procedure TTriggerEngine.TimeTicks;
+var
+  LEvent: TTriggerEvent;
+begin
+  // with this trick time will generate a trigger
+  if (FTimeout < MaxInt) and (GetTickCount > FTimeout) then begin
+    TDbgLogger.Instance.LogVerbose('SEQ: timeout detected');
+    LEvent.EventType := kTriggerTimeEv;
+    LEvent.Timeout   := GetTickCount;
+    Trigger(LEvent);
+  end;
 end;
 
 {$ENDREGION}
@@ -608,7 +803,7 @@ begin
   Result := ClassName;
 end;
 
-function TSeqEl.FireTrigger(AMsg: TCanMsg): Boolean;
+function TSeqEl.TriggerCallback(AEvent: TTriggerEvent): Boolean;
 begin
   Result := false;
 end;
@@ -644,7 +839,7 @@ end;
 
 procedure TDelayEl.Execute; 
 begin
-	FOwnerSeq.SetTimeout(self,FDelay);
+  FOwnerSeq.AddTrigger(TTriggerTime.Create(self,FDelay));
 end;
 
 // statment WAITMSG (trigger)
@@ -657,13 +852,12 @@ end;
 procedure TWaitEl.Execute; 
 begin
 	TDbgLogger.Instance.LogVerbose('SEQ: execute WAITMSG');
-	// attendo come trigger il messaggio memorizzato in data
-	FOwnerSeq.SetTrigger(self);
-end;
-
-function TWaitEl.FireTrigger(AMsg: TCanMsg): Boolean;
-begin
-  Result := MatchMsg(AMsg);
+	FOwnerSeq.AddTrigger(
+    TTriggerMsg.Create(
+      self,
+      TSeqCanMsgObj.Create(FMsgObj)
+    )
+  );
 end;
 
 // statment CASE
@@ -690,7 +884,7 @@ end;
 // statment BREAK
 procedure TBreakEl.Execute;
 begin
-	TDbgLogger.Instance.LogVerbose('"SEQ: execute BREAK');
+	TDbgLogger.Instance.LogVerbose('SEQ: execute BREAK');
 	// quando incontro un break vado alla alla fine del SELECT
 	DoGoto(GetEndAddress(FOwnerSeq.GetSelect));
 	// il break termina la select
@@ -786,15 +980,15 @@ begin
 	FOwnerSeq.SetSelect(self);
 
 	// imposto questo select come trigger
-	FOwnerSeq.SetTrigger(self);
+	FOwnerSeq.AddTrigger(TTriggerSelect.Create(self));
 
 	if FTimeout > 0 then begin
 		TDbgLogger.Instance.LogVerbose('SEQ: SELECT setup timer');
-		FOwnerSeq.SetTimeout(self,FTimeout);
+    FOwnerSeq.AddTrigger(TTriggerTime.Create(self,FTimeout));
 	end;
 end;
 
-procedure TSelectEl.Timeout();
+procedure TSelectEl.Timeout;
 begin
 	TDbgLogger.Instance.LogVerbose('SEQ: timeout SELECT');
 
@@ -805,28 +999,38 @@ begin
 		DoGoto(GetEndAddress);
 end;
 
-function TSelectEl.FireTrigger(AMsg: TCanMsg): Boolean;
+function TSelectEl.TriggerCallback(AEvent: TTriggerEvent): Boolean;
 var
-	el: TCaseEl;
+	LElement: TCaseEl;
 begin
-	TDbgLogger.Instance.EnterMethod(Self,'FireTrigger');
+	TDbgLogger.Instance.EnterMethod(Self,'TriggerCallback');
+  Result := false;
+  case AEvent.EventType of
+    kTriggerMsgEv:
+      with AEvent do begin
+        LElement := lookForCase(Msg);
 
-	el := lookForCase(AMsg);
+        if LElement <> nil then begin
+          // effetto il salto verso il CASE opportuno
+          TDbgLogger.Instance.LogVerbose('SEQ: goto CASE %s',[Msg.ToString]);
+          DoGoto(LElement.GetAddress);
+          Result := true;
+        end else if FDefaultEl <> nil then begin
+          // non c'è un case giusto effettuo il salto verso il DEFAULT
+          TDbgLogger.Instance.LogVerbose('SEQ: goto DEFAULT %s',[Msg.ToString]);
+          DoGoto(FDefaultEl.GetAddress);
+          Result := true;
+        end
+      end;
 
-	if el <> nil then begin
-		// effetto il salto verso il CASE opportuno
-		TDbgLogger.Instance.LogVerbose('SEQ: goto CASE %s',[AMsg.ToString]);
-		DoGoto(el.GetAddress);
-		Result := true;
-	end else if FDefaultEl <> nil then begin
-		// non c'è un case giusto effettuo il salto verso il DEFAULT
-		TDbgLogger.Instance.LogVerbose('SEQ: goto DEFAULT %s',[AMsg.ToString]);
-		DoGoto(FDefaultEl.GetAddress);
-		Result := true;
-	end else // il trigger non ha effettuato operazioni
-		Result := false;
-
-	TDbgLogger.Instance.LeaveMethod(Self,'FireTrigger');
+    kTriggerTimeEv:
+      if FExpiredEl <> nil then begin
+        TDbgLogger.Instance.LogVerbose('SEQ: goto EXPIRED');
+        DoGoto(FExpiredEl.GetAddress());
+      end else
+        DoGoto(GetEndAddress);
+  end;
+	TDbgLogger.Instance.LeaveMethod(Self,'TriggerCallback');
 end;
 
 procedure TSelectEl.AddCase(ACaseEl: TCaseEl);
@@ -981,13 +1185,6 @@ begin
   Reset;
 end;
 
-procedure TSequence.clearTrigger;
-begin
-  FTrigger := nil;
-  FTimerTrigger := nil;
-  FTimer := 0;
-end;
-
 function TSequence.getCount: Integer;
 begin
   Result := FData.Count;
@@ -1001,12 +1198,15 @@ begin
 	FLoopStack     := TStack<TSeqEl>.Create;
 	FSelectStack   := TStack<TSeqEl>.Create;
   FData          := TObjectList<TSeqEl>.Create;
+  FTriggerEngine := TTriggerEngine.Create;
 end;
 
 destructor TSequence.Destroy;
 begin
   clearData;
+  FTriggerEngine.Free;
   FData.Free;
+  FTriggerList.Free;
 	FLoopStack.Free;
 	FSelectStack.Free;
   // TODO 1 -cFIXME : verificare interazioni con ClearMsgQueue
@@ -1043,8 +1243,8 @@ begin
 	FProgramCounter := 0;
 	FLoopStack.Clear;
 	FSelectStack.Clear;
+  FTriggerEngine.Reset;
 	ClearIncomingEvents;
-	FTrigger := nil;
 end;
 
 procedure TSequence.SetResult(AResult: TTerminateState);
@@ -1062,25 +1262,12 @@ var
   waitTrigger: Boolean;
 begin
   Result := false;
-	waitTrigger := false;
 
-	if FTrigger <> nil then
-		waitTrigger := TRUE;
-
-	if FTimerTrigger <> nil then
-		if (FTimer > 0) and (Cardinal(FTimer) < GetTickCount) then begin
-			TDbgLogger.Instance.LogVerbose('SEQ: timeout expired');
-			FTimerTrigger.Timeout;
-			{ sto attendendo dei trigger, ma undo dei trigger (il tempo) è scattato
-			  quindi rimuovo la condizione di attesa }
-			waitTrigger := FALSE;
-		end else
-			waitTrigger := TRUE;
+  // time base for triggers
+  FTriggerEngine.TimeTicks;
 
 	// if i'm not waiting a trigger i process step
-	if not waitTrigger then begin
-    clearTrigger();
-
+	if not FTriggerEngine.Waiting then begin
     // if we have more step execute step and move program counter
     if FProgramCounter <> getCount then begin
       FData[FProgramCounter].Execute;
@@ -1091,34 +1278,19 @@ begin
 		Result := true
 end;
 
-procedure TSequence.Trigger(AMsg: TCanMsg);
-var
-  LMsg: TCanMsg;
-  doBreak: Boolean;
+procedure TSequence.Trigger(AEvent: TTriggerEvent);
 begin
-  FIncomingEventQueue.Enqueue(AMsg);
-	if FTrigger <> nil then begin
-		doBreak := FALSE;
-		while FIncomingEventQueue.Count > 0 do begin
-			LMsg := FIncomingEventQueue.Dequeue;
-			TDbgLogger.Instance.LogVerbose('SEQ: Trigger get Obj %s',[LMsg.ToString]);
-			if FTrigger.FireTrigger(LMsg) then begin
-				TDbgLogger.Instance.LogVerbose('SEQ: got trigger');
-				clearTrigger;
-        Exit;
-			end;
-		end { while }
-	end { if }
+  FTriggerEngine.Trigger(AEvent);
+end;
+
+procedure TSequence.AddTrigger(ATrigger: TTriggerObject);
+begin
+  FTriggerEngine.AddTrigger(ATrigger);
 end;
 
 procedure TSequence.ClearIncomingEvents;
 begin
 	FIncomingEventQueue.Clear;
-end;
-
-function TSequence.Waiting: Boolean;
-begin
-  Result := FTrigger <> nil;
 end;
 
 function TSequence.IsValid(): Boolean;
@@ -1137,17 +1309,6 @@ end;
 procedure TSequence.DoGoto(ANewAddress: Integer);
 begin
   FProgramCounter := ANewAddress;
-end;
-
-procedure TSequence.SetTimeout(ATrigger: TSeqEl; ATimeMS: Cardinal);
-begin
-	FTimerTrigger := ATrigger;
-	FTimer := GetTickCount + ATimeMS;
-end;
-
-procedure TSequence.SetTrigger(ATrigger: TSeqEl);
-begin
-  FTrigger := ATrigger;
 end;
 
 procedure TSequence.SetLoop(ALoop: TSeqEl);
@@ -1314,22 +1475,14 @@ begin
 	Result := continueRun;
 end;
 
-// TODO 2 -cFIXME : rendere indipendenti i trigger dal tipo
-procedure TSequenceEngine.Trigger(ACanMsg: TCanMsg);
+procedure TSequenceEngine.Trigger(AEvent: TTriggerEvent);
 var
   seq: TSequence;
 begin
 	seq := TSequence(FSequences.Objects[FCurrentIndex]);
-	seq.Trigger(ACanMsg);
+	seq.Trigger(AEvent);
 end;
 
-function TSequenceEngine.Waiting: Boolean;
-var
-  seq: TSequence;
-begin
-	seq := TSequence(FSequences.Objects[FCurrentIndex]);
-	Result := seq.Waiting();
-end;
 {$ENDREGION}
 
 {$REGION 'TSequenceEngineInternal'}

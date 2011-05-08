@@ -58,6 +58,10 @@ object fmMain: TfmMain
     OnResize = pgControlResize
     object Debug: TTabSheet
       Caption = 'Debug'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object lbLogEntry: TListBox
         Left = 0
         Top = 0
@@ -112,6 +116,10 @@ object fmMain: TfmMain
     object TabSheet1: TTabSheet
       Caption = 'Sequences'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         750
         396)
@@ -176,6 +184,10 @@ object fmMain: TfmMain
     object Options: TTabSheet
       Caption = 'Options'
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Label2: TLabel
         Left = 5
         Top = 19
