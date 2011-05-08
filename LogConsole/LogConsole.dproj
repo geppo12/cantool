@@ -36,9 +36,7 @@
 			<DCC_K>false</DCC_K>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1)'!=''">
-			<DCC_Inlining>off</DCC_Inlining>
 			<DCC_DebugInfoInTds>true</DCC_DebugInfoInTds>
-			<DCC_DebugInfoInExe>true</DCC_DebugInfoInExe>
 			<DCC_Hints>false</DCC_Hints>
 			<BRCC_Defines>USE_SMARTINSPECT;$(BRCC_Defines)</BRCC_Defines>
 			<DCC_Define>DEBUG;NO_SIC_NEEDED;$(DCC_Define)</DCC_Define>
@@ -100,7 +98,7 @@
 						<VersionInfo Name="MajorVer">0</VersionInfo>
 						<VersionInfo Name="MinorVer">3</VersionInfo>
 						<VersionInfo Name="Release">0</VersionInfo>
-						<VersionInfo Name="Build">57</VersionInfo>
+						<VersionInfo Name="Build">63</VersionInfo>
 						<VersionInfo Name="Debug">False</VersionInfo>
 						<VersionInfo Name="PreRelease">False</VersionInfo>
 						<VersionInfo Name="Special">False</VersionInfo>
@@ -112,7 +110,7 @@
 					<VersionInfoKeys>
 						<VersionInfoKeys Name="CompanyName"/>
 						<VersionInfoKeys Name="FileDescription"/>
-						<VersionInfoKeys Name="FileVersion">0.3.0.57</VersionInfoKeys>
+						<VersionInfoKeys Name="FileVersion">0.3.0.63</VersionInfoKeys>
 						<VersionInfoKeys Name="InternalName"/>
 						<VersionInfoKeys Name="LegalCopyright"/>
 						<VersionInfoKeys Name="LegalTrademarks"/>
