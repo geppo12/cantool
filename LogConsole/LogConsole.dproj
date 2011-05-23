@@ -71,6 +71,7 @@
 			</DCCReference>
 			<DCCReference Include="USequences.pas"/>
 			<DCCReference Include="USplitterStr.pas"/>
+			<DCCReference Include="UOptions.pas"/>
 			<None Include="DVersions.inc"/>
 			<None Include="LogConsole.todo"/>
 			<BuildConfiguration Include="Release">
@@ -98,7 +99,7 @@
 						<VersionInfo Name="MajorVer">0</VersionInfo>
 						<VersionInfo Name="MinorVer">4</VersionInfo>
 						<VersionInfo Name="Release">0</VersionInfo>
-						<VersionInfo Name="Build">63</VersionInfo>
+						<VersionInfo Name="Build">65</VersionInfo>
 						<VersionInfo Name="Debug">False</VersionInfo>
 						<VersionInfo Name="PreRelease">False</VersionInfo>
 						<VersionInfo Name="Special">False</VersionInfo>
@@ -110,7 +111,7 @@
 					<VersionInfoKeys>
 						<VersionInfoKeys Name="CompanyName"/>
 						<VersionInfoKeys Name="FileDescription"/>
-						<VersionInfoKeys Name="FileVersion">0.4.0.63</VersionInfoKeys>
+						<VersionInfoKeys Name="FileVersion">0.4.0.65</VersionInfoKeys>
 						<VersionInfoKeys Name="InternalName"/>
 						<VersionInfoKeys Name="LegalCopyright"/>
 						<VersionInfoKeys Name="LegalTrademarks"/>

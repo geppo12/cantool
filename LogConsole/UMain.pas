@@ -92,8 +92,8 @@ type
     FFileList: TFileNamesList;
     FLink: TNICanLink;
     FSqzLogProcessor: TSqzLogNetHandler;
-    FCanSqzFilter: Cardinal;
-    FCanSqzId: Cardinal;
+    //FCanSqzFilter: Cardinal; #OC
+    //FCanSqzId: Cardinal; #OC
     { can log support }
     FCanMsgList: TCanMsgList;
     FCanMsgView: TCanMsgView;
@@ -134,6 +134,7 @@ implementation
 
 uses
   UAbout,
+  UOptions,
   UFmFilters,
   UFileVersion;
 
@@ -211,11 +212,7 @@ begin
   setupLogRowCount;
   updateRowSize;
 
-  // startup default values
-  // TODO 2 -cFEATURE : load / save options
-  FCanSqzId     := $FE0000;
-  FCanSqzFilter := $FFC000;
-  FSqzLogProcessor.NodeMask := $3FFF;
+  FSqzLogProcessor.NodeMask := TNCTOptions.Instance.NodeMask;
   showOptions;
   showFilterControls(false);
 end;
@@ -280,8 +277,8 @@ begin
   while GetTestMsg(LMsg) do begin
 {$ELSE}
   while FLink.Active and FLink.Read(LMsg) do begin
-    with LMsg do
-      if (FCanSqzFilter and ecmID) = FCanSqzId then begin
+    with LMsg, TNCTOptions.Instance do
+      if (SqueezeLogMask and ecmID) = SqueezeLogId then begin
         FLogger.LogDebug('Process msg: %s',[ToString]);
         FSqzLogProcessor.ProcessSqzData(ecmID,ecmData,ecmLen);
       end;
@@ -456,16 +453,21 @@ end;
 
 procedure TfmMain.setupOptions;
 begin
-  FCanSqzFilter := StrToIntDef(eSqzLogMask.Text,FCanSqzFilter);
-  FCanSqzId     := StrToIntDef(eSqzLogID.Text,FCanSqzId);
-  FSqzLogProcessor.NodeMask := StrToIntDef(eNodeMask.Text,FSqzLogProcessor.NodeMask);
+  with TNCTOptions.Instance do begin
+    SqueezeLogMask := StrToIntDef(eSqzLogMask.Text,SqueezeLogMask);
+    SqueezeLogId   := StrToIntDef(eSqzLogID.Text,SqueezeLogId);
+    NodeMask := StrToIntDef(eNodeMask.Text,NodeMask);
+    FSqzLogProcessor.NodeMask := NodeMask;
+end;
 end;
 
 procedure TfmMain.showOptions;
 begin
-  eSqzLogMask.Text := Format('0x%.8X',[FCanSqzFilter]);
-  eSqzLogID.Text   := Format('0x%.8X',[FCanSqzId]);
-  eNodeMask.Text   := Format('0x%.8X',[FSqzLogProcessor.NodeMask]);
+  with TNCTOptions.Instance do begin
+    eSqzLogMask.Text := Format('0x%.8X',[SqueezeLogMask]);
+    eSqzLogID.Text   := Format('0x%.8X',[SqueezeLogId]);
+    eNodeMask.Text   := Format('0x%.8X',[NodeMask]);
+end;
 end;
 
 procedure TfmMain.showFilterControls(AOnOff: Boolean);

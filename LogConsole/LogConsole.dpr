@@ -13,7 +13,8 @@ uses
   UAbout in 'UAbout.pas' {fmAbout},
   UFmFilters in 'UFmFilters.pas' {fmFilter},
   USequences in 'USequences.pas',
-  USplitterStr in 'USplitterStr.pas';
+  USplitterStr in 'USplitterStr.pas',
+  UOptions in 'UOptions.pas';
 
 {$R *.res}
 
