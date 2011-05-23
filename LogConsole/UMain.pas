@@ -85,7 +85,7 @@ type
     procedure vScrollBarChange(Sender: TObject);
   private
     { Private declarations }
-    FOldPage: Integer;
+    FLastPage: Integer;
     FSeqTerminate: Boolean;
     FLogger: TDbgLogger;
     FSequenceEngine: TSequenceEngine;
@@ -97,6 +97,7 @@ type
     { can log support }
     FCanMsgList: TCanMsgList;
     FCanMsgView: TCanMsgView;
+
     procedure print(ANodeId: Integer; AClass: TSqzLogClass; ATitle: string);
     procedure seqPrint(AString: string);
     procedure sendMsg(AMsg: TCanMsg);
@@ -117,7 +118,7 @@ type
   TAppPages = (
     pgDebug    = 0,
     pgCanLog   = 1,
-    pgSequnces = 2,
+    pgSequences = 2,
     pgOptions  = 3
   );
 
@@ -215,6 +216,8 @@ begin
   FCanSqzId     := $FE0000;
   FCanSqzFilter := $FFC000;
   FSqzLogProcessor.NodeMask := $3FFF;
+  showOptions;
+  showFilterControls(false);
 end;
 
 procedure TfmMain.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -229,38 +232,36 @@ end;
 procedure TfmMain.pgControlChange(Sender: TObject);
 var
   LCanOpen: Boolean;
-
-  procedure setupCase(AShow: Boolean);
-  begin
-    // save options
-    setupOptions;
-    // show filter
-    showFilterControls(AShow);
-    FOldPage := pgControl.TabIndex;
-  end;
 begin
   LCanOpen := True;
   case TAppPages(pgControl.TabIndex) of
-    pgDebug: setupCase(false);
+    pgDebug: showFilterControls(false);
     pgCanLog: begin
-        setupCase(true);
+        showFilterControls(true);
         updateScrollBar;
         sgRawLog.Invalidate;
       end;
 
+    pgSequences:
+        showFilterControls(false);
+
     pgOptions: begin
         showFilterControls(false);
         if FLink.Active then begin
-          pgControl.TabIndex := FOldPage;
+          // Override: cannot select this page
+          pgControl.TabIndex := FLastPage;
           MessageDlg('Cannot change setup with active link',mtError, [mbOk],0);
-        end else begin
+        end else
           LCanOpen := False;
-          showOptions;
-          FOldPage := pgControl.TabIndex;
-        end;
       end;
   end;
   cbOpen.Enabled := LCanOpen;
+
+  // save option on exit of setup page
+  if FLastPage = Ord(pgOptions) then
+    setupOptions;
+
+  FLastPage := pgControl.TabIndex;
 end;
 
 procedure TfmMain.pgControlResize(Sender: TObject);
