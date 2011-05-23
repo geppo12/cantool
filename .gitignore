@@ -1,3 +1,4 @@
+*.lnk
 *.zip
 *.exe
 *.dcu
@@ -12,3 +13,10 @@
 *.seq
 examples/
 firmware/
+LogCompiler/old/
+LogCompiler/Test/
+LogConsole/Debug/
+LogConsole/LogConsole.sic
+LogConsole/LogConsole.todo
+Docs/*
+!Docs/Sequences.*
