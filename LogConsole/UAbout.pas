@@ -36,9 +36,11 @@ type
     btnOK: TButton;
     Label1: TLabel;
     LinkLabel1: TLinkLabel;
+    Timer1: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure LinkLabel1LinkClick(Sender: TObject; const Link: string; LinkType:
         TSysLinkType);
+    procedure Timer1Timer(Sender: TObject);
   private
     { Private declarations }
   public
@@ -70,6 +72,11 @@ procedure TfmAbout.LinkLabel1LinkClick(Sender: TObject; const Link: string;
     LinkType: TSysLinkType);
 begin
   ShellOpen(Link);
+end;
+
+procedure TfmAbout.Timer1Timer(Sender: TObject);
+begin
+  Modalresult := mrOk;
 end;
 
 end.

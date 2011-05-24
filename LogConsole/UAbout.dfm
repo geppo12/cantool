@@ -50,4 +50,10 @@ object fmAbout: TfmAbout
     TabOrder = 1
     OnLinkClick = LinkLabel1LinkClick
   end
+  object Timer1: TTimer
+    Interval = 10000
+    OnTimer = Timer1Timer
+    Left = 216
+    Top = 8
+  end
 end
