@@ -26,7 +26,7 @@
 	 EXCEPTION FOR THIS UNIT.
 	 =====================================
 	 
-	 This unit can be used in other poject under the followin BSD like licence
+	 This unit can be used in other project under the followin BSD like licence
 	 
 	 Redistribution and use in source and binary forms, with or without
 	 modification, are permitted provided that the following conditions are met:
