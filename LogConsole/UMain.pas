@@ -68,8 +68,10 @@ type
     btnSeqCancel: TButton;
     odSequence: TOpenDialog;
     lbSeqOutText: TListBox;
+    btnMarkerEdit: TButton;
     procedure btnSeqCancelClick(Sender: TObject);
     procedure btnFilterEditClick(Sender: TObject);
+    procedure btnMarkerEditClick(Sender: TObject);
     procedure btnSeqGoClick(Sender: TObject);
     procedure btnSeqLoadClick(Sender: TObject);
     procedure cbFilterEnableClick(Sender: TObject);
@@ -92,8 +94,6 @@ type
     FFileList: TFileNamesList;
     FLink: TNICanLink;
     FSqzLogProcessor: TSqzLogNetHandler;
-    //FCanSqzFilter: Cardinal; #OC
-    //FCanSqzId: Cardinal; #OC
     { can log support }
     FCanMsgList: TCanMsgList;
     FCanMsgView: TCanMsgView;
@@ -136,6 +136,7 @@ uses
   UAbout,
   UOptions,
   UFmFilters,
+  UFmMarkers,
   UFileVersion;
 
 {$IFDEF STRESS_TEST}
@@ -214,7 +215,7 @@ begin
 
   FSqzLogProcessor.NodeMask := TNCTOptions.Instance.NodeMask;
   showOptions;
-  showFilterControls(false);
+  showFilterControls(pgControl.TabIndex = Ord(pgCanLog));
 end;
 
 procedure TfmMain.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -292,17 +293,22 @@ procedure TfmMain.sgRawLogDrawCell(Sender: TObject; ACol, ARow: Integer; Rect:
     TRect; State: TGridDrawState);
 var
   I,J: Integer;
+  LOldColor: TColor;
 begin
   // clear background
-  sgRawLog.Canvas.FillRect(Rect);
   if ARow < FCanMsgView.Count then begin
+    LOldColor := sgRawLog.Canvas.Brush.Color;
+    sgRawLog.Canvas.Brush.Color := FCanMsgView.Color[ARow];
+    sgRawLog.Canvas.FillRect(Rect);
     with FCanMsgView.Messages[ARow] do
       case ACol of
         0: sgRawLog.Canvas.TextOut(Rect.Left,Rect.Top,Format('0x%.8X',[ecmId]));
         1: sgRawLog.Canvas.TextOut(Rect.Left,Rect.Top,Format('%d',[ecmLen]));
         2: sgRawLog.Canvas.TextOut(Rect.Left,Rect.Top,DataStr);
       end;
-  end;
+    sgRawLog.Canvas.Brush.Color := LOldColor;
+  end else
+    sgRawLog.Canvas.FillRect(Rect);
 end;
 
 procedure TfmMain.vScrollBarChange(Sender: TObject);
@@ -340,6 +346,19 @@ begin
     LFilterForm.UpdateFilterList(FCanMsgList.FilterList);
 
   LFilterForm.Free;
+end;
+
+procedure TfmMain.btnMarkerEditClick(Sender: TObject);
+var
+  LForm: TfmMarkerEdit;
+begin
+  LForm := TfmMarkerEdit.Create(self);
+  LForm.Markers := FCanMsgView.Markers;
+  if LForm.ShowModal = mrOk then begin
+    FCanMsgView.Markers := LForm.Markers;
+    sgRawLog.Invalidate;
+  end;
+  LForm.Free;
 end;
 
 procedure TfmMain.btnSeqLoadClick(Sender: TObject);
@@ -473,6 +492,7 @@ end;
 procedure TfmMain.showFilterControls(AOnOff: Boolean);
 begin
   btnFilterEdit.Visible := AOnOff;
+  btnMarkerEdit.Visible := AOnOff;
   cbFilterEnable.Visible  := AOnOff;
 end;
 

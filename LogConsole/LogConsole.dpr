@@ -38,7 +38,8 @@ uses
   UFmFilters in 'UFmFilters.pas' {fmFilter},
   USequences in 'USequences.pas',
   USplitterStr in 'USplitterStr.pas',
-  UOptions in 'UOptions.pas';
+  UOptions in 'UOptions.pas',
+  UFmMarkers in 'UFmMarkers.pas' {fmMarkerEdit};
 
 {$R *.res}
 

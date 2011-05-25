@@ -233,7 +233,7 @@ object fmMain: TfmMain
     end
   end
   object cbFilterEnable: TCheckBox
-    Left = 605
+    Left = 524
     Top = 442
     Width = 80
     Height = 17
@@ -243,7 +243,7 @@ object fmMain: TfmMain
     OnClick = cbFilterEnableClick
   end
   object btnFilterEdit: TButton
-    Left = 691
+    Left = 610
     Top = 438
     Width = 75
     Height = 25
@@ -251,6 +251,15 @@ object fmMain: TfmMain
     Caption = 'Filter Edit'
     TabOrder = 4
     OnClick = btnFilterEditClick
+  end
+  object btnMarkerEdit: TButton
+    Left = 691
+    Top = 438
+    Width = 75
+    Height = 25
+    Caption = 'Marker Edit'
+    TabOrder = 5
+    OnClick = btnMarkerEditClick
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer

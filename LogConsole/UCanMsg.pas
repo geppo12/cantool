@@ -33,6 +33,7 @@ interface
 
 Uses
   Classes,
+  Graphics,
   Generics.Collections;
 
 type
@@ -59,6 +60,7 @@ type
     MaskId: Cardinal;
     ValueLow: Cardinal;
     ValueHigh: Cardinal;
+    function Match(AMsg: TCanMsg): Boolean;
   end;
 
   TCanMsgFilterList = TList<TCanMsgFilter>;
@@ -88,20 +90,37 @@ type
     property Count: Integer read getCount;
   end;
 
+  TCanMarker = record
+    Name: string;
+    Filter: TCanMsgFilter;
+    Color: TColor;
+  end;
+
+  TMarkerList = class(TList<TCanMarker>)
+    public
+    procedure Assign(AMarkers: TMarkerList);
+  end;
+
   TCanMsgView = class
     private
+    FMarkers: TMarkerList;
     FList: TCanMsgList;
     FViewSize: Integer;
     FTop: Integer;
 
     function getMessages(AIndex: Integer): TCanMsg;
+    function getColor(AIndex: Integer): TColor;
+    procedure setMarkers(AMarkers: TMarkerList); inline;
     procedure setTop(ATop: Integer);
     function getCount: Integer;
 
     public
     constructor Create(AList: TCanMsgList);
+    destructor Destroy; override;
     procedure Update;
     property Messages[AIndex: Integer]: TCanMsg read getMessages;
+    property Color[AIndex: Integer]: TColor read getColor;
+    property Markers: TMarkerList read FMarkers write setMarkers;
     property Top: Integer read FTop write setTop;
     property Count: Integer read getCount;
     property ViewSize: Integer read FViewSize write FViewSize;
@@ -146,21 +165,27 @@ begin
   AStrings.Strings[1] := IntToStr(ecmLen);
   AStrings.Strings[2] := formatData(' ');
 end;
+{$ENDREGION}
 
+{$REGION 'TCanMsgFilter}
+function TCanMsgFilter.Match(AMsg: TCanMsg): Boolean;
+var
+  LMaskedId: Cardinal;
+begin
+  LMaskedId := AMsg.ecmID and MaskId;
+  Result := ((LMaskedId >= ValueLow) and (LMaskedId <= ValueHigh));
+end;
 {$ENDREGION}
 
 {$REGION 'TCanMsgList'}
 function TCanMsgList.filterMatch(AMsg: TCanMsg): Boolean;
 var
   LFilter: TCanMsgFilter;
-  LMaskedId: Cardinal;
 begin
   Result := false;
-  for LFilter in FFilterList do begin
-    LMaskedId := AMsg.ecmID and LFilter.MaskId;
-    if (LMaskedId >= LFilter.ValueLow) and (LMaskedId <= LFilter.ValueHigh)  then
+  for LFilter in FFilterList do
+    if LFilter.Match(AMsg) then
       Exit(true);
-  end;
 end;
 
 procedure TCanMsgList.setFiltered(AFiltered: Boolean);
@@ -245,10 +270,36 @@ begin
 end;
 {$ENDREGION}
 
+{$REGION ''}
+procedure TMarkerList.Assign(AMarkers: TMarkerList);
+var
+  LMarker: TCanMarker;
+begin
+  Clear;
+  for LMarker in AMarkers do
+    Add(LMarker);
+end;
+{$ENDREGION}
+
 {$REGION 'TCanMsgView'}
 function TCanMsgView.getMessages(AIndex: Integer): TCanMsg;
 begin
   Result := FList.Messages[AIndex + FTop];
+end;
+
+function TCanMsgView.getColor(AIndex: Integer): TColor;
+var
+  LMarker: TCanMarker;
+begin
+  Result := clWhite;
+  for LMarker in FMarkers do
+    if LMarker.Filter.Match(Messages[AIndex]) then
+      Exit(LMarker.Color);
+end;
+
+procedure TCanMsgView.setMarkers(AMarkers: TMarkerList);
+begin
+  FMarkers.Assign(AMarkers);
 end;
 
 procedure TCanMsgView.setTop(ATop: Integer);
@@ -272,12 +323,19 @@ constructor TCanMsgView.Create(AList: TCanMsgList);
 begin
   FList := AList;
   FList.Filtered := false;
+  FMarkers := TMarkerList.Create;
+end;
+
+destructor TCanMsgView.Destroy;
+begin
+  FMarkers.Free;
 end;
 
 procedure TCanMsgView.Update;
 begin
   Top := FList.ConvertIndex(Top);
 end;
+
 {$ENDREGION}
 
 end.

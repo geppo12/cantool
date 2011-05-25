@@ -36,6 +36,7 @@
 			<DCC_K>false</DCC_K>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1)'!=''">
+			<DCC_DebugDCUs>true</DCC_DebugDCUs>
 			<DCC_DebugInfoInTds>true</DCC_DebugInfoInTds>
 			<DCC_Hints>false</DCC_Hints>
 			<BRCC_Defines>USE_SMARTINSPECT;$(BRCC_Defines)</BRCC_Defines>
@@ -72,8 +73,31 @@
 			<DCCReference Include="USequences.pas"/>
 			<DCCReference Include="USplitterStr.pas"/>
 			<DCCReference Include="UOptions.pas"/>
+			<DCCReference Include="UFmMarkers.pas">
+				<Form>fmMarkerEdit</Form>
+			</DCCReference>
 			<None Include="DVersions.inc"/>
 			<None Include="LogConsole.todo"/>
+			<None Include="ModelSupport_LogConsole\default.txaPackage"/>
+			<None Include="ModelSupport_LogConsole\default.txvpck"/>
+			<None Include="ModelSupport_LogConsole\UFileVersion\default.txvpck"/>
+			<None Include="ModelSupport_LogConsole\LogConsole\default.txvpck"/>
+			<None Include="ModelSupport_LogConsole\UFileList\default.txvpck"/>
+			<None Include="ModelSupport_LogConsole\UFileList\default.txaPackage"/>
+			<None Include="ModelSupport_LogConsole\USplitterStr\default.txvpck"/>
+			<None Include="ModelSupport_LogConsole\UAbout\default.txvpck"/>
+			<None Include="ModelSupport_LogConsole\USqzLogCore\default.txvpck"/>
+			<None Include="ModelSupport_LogConsole\UOptions\default.txvpck"/>
+			<None Include="ModelSupport_LogConsole\UMain\default.txvpck"/>
+			<None Include="ModelSupport_LogConsole\USequences\default.txvpck"/>
+			<None Include="ModelSupport_LogConsole\UFmFilters\default.txvpck"/>
+			<None Include="ModelSupport_LogConsole\UNICanLink\default.txvpck"/>
+			<None Include="ModelSupport_LogConsole\UCanMsg\default.txvpck"/>
+			<None Include="ModelSupport_LogConsole\UDbgLogger\default.txvpck"/>
+			<None Include="ModelSupport_LogConsole\UNIAPI\default.txvpck"/>
+			<None Include="ModelSupport_LogConsole\UNIAPI\default.txaPackage"/>
+			<None Include="ModelSupport_LogConsole\UCanMsg\default.txaPackage"/>
+			<None Include="ModelSupport_LogConsole\UMain\default.txaPackage"/>
 			<BuildConfiguration Include="Release">
 				<Key>Cfg_2</Key>
 				<CfgParent>Base</CfgParent>
@@ -99,7 +123,7 @@
 						<VersionInfo Name="MajorVer">0</VersionInfo>
 						<VersionInfo Name="MinorVer">4</VersionInfo>
 						<VersionInfo Name="Release">0</VersionInfo>
-						<VersionInfo Name="Build">66</VersionInfo>
+						<VersionInfo Name="Build">68</VersionInfo>
 						<VersionInfo Name="Debug">False</VersionInfo>
 						<VersionInfo Name="PreRelease">False</VersionInfo>
 						<VersionInfo Name="Special">False</VersionInfo>
@@ -111,7 +135,7 @@
 					<VersionInfoKeys>
 						<VersionInfoKeys Name="CompanyName"/>
 						<VersionInfoKeys Name="FileDescription"/>
-						<VersionInfoKeys Name="FileVersion">0.4.0.66</VersionInfoKeys>
+						<VersionInfoKeys Name="FileVersion">0.4.0.68</VersionInfoKeys>
 						<VersionInfoKeys Name="InternalName"/>
 						<VersionInfoKeys Name="LegalCopyright"/>
 						<VersionInfoKeys Name="LegalTrademarks"/>
@@ -127,6 +151,7 @@
 				<Platforms>
 					<Platform value="Win32">True</Platform>
 				</Platforms>
+				<ModelSupport>True</ModelSupport>
 			</BorlandProject>
 			<ProjectFileVersion>12</ProjectFileVersion>
 		</ProjectExtensions>

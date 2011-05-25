@@ -16,6 +16,8 @@ firmware/
 LogCompiler/old/
 LogCompiler/Test/
 LogConsole/Debug/
+LogConsole/ModelSupport_LogConsole/
+LogConsole/LogConsole_project.tvsconfig
 LogConsole/LogConsole.sic
 LogConsole/LogConsole.todo
 Docs/*
