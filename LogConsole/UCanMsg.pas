@@ -45,6 +45,7 @@ type
     public
     ecmTime: Int64;
     ecmID: Cardinal;
+    ecmExt: Boolean;
     ecmLen: Cardinal;
     ecmData: array [0..7] of Byte;
     function ToString: string;
@@ -154,20 +155,20 @@ function TCanMsg.ToString: string;
 var
   I: Integer;
 begin
-  Result := Format('ID=0x%.8X L=%d',[ecmId,ecmLen]);
+  Result := Format('ID=0x%.8X%s L=%d',[ecmId,IfThen(ecmExt,'XTD',''),ecmLen]);
   if ecmLen > 0 then
     Result := Result+' D='+formatData('.');
 end;
 
 procedure TCanMsg.ToStrings(AStrings: TStrings);
 begin
-  AStrings.Strings[0] := Format('0x%.8X',[ecmId]);
+  AStrings.Strings[0] := Format('0x%.8X%s',[ecmId,IfThen(ecmExt,' XTD','')]);
   AStrings.Strings[1] := IntToStr(ecmLen);
   AStrings.Strings[2] := formatData(' ');
 end;
 {$ENDREGION}
 
-{$REGION 'TCanMsgFilter}
+{$REGION 'TCanMsgFilter'}
 function TCanMsgFilter.Match(AMsg: TCanMsg): Boolean;
 var
   LMaskedId: Cardinal;

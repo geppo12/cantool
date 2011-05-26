@@ -233,7 +233,8 @@ begin
       // normal can frame
       if FNICanBuffer[I].FrameType = 0 then begin
         LCanMsg.ecmTime := int64NI2D(FNICanBuffer[I].Timestamp);
-        LCanMsg.ecmID  := FNICanBuffer[I].ArbitrationId;
+        LCanMsg.ecmID  := FNICanBuffer[I].ArbitrationId and $1FFFFFFF;
+        LCanMsg.ecmExt := (FNICanBuffer[I].ArbitrationId and $20000000) <> 0;
         LCanMsg.ecmLen := FNICanBuffer[I].DataLength;
         // copy CAN data buffer
         Move(FNICanBuffer[I].Data,LCanMsg.ecmData,8);

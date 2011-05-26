@@ -133,6 +133,7 @@ implementation
 {$R *.dfm}
 
 uses
+  StrUtils,
   UAbout,
   UOptions,
   UFmFilters,
@@ -302,7 +303,7 @@ begin
     sgRawLog.Canvas.FillRect(Rect);
     with FCanMsgView.Messages[ARow] do
       case ACol of
-        0: sgRawLog.Canvas.TextOut(Rect.Left,Rect.Top,Format('0x%.8X',[ecmId]));
+        0: sgRawLog.Canvas.TextOut(Rect.Left,Rect.Top,Format('0x%.8X%s',[ecmId,IfThen(ecmExt,' XTD','')]));
         1: sgRawLog.Canvas.TextOut(Rect.Left,Rect.Top,Format('%d',[ecmLen]));
         2: sgRawLog.Canvas.TextOut(Rect.Left,Rect.Top,DataStr);
       end;
