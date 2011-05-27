@@ -223,6 +223,7 @@ procedure TfmMain.FormClose(Sender: TObject; var Action: TCloseAction);
 var
   LAbout: TForm;
 begin
+  setupOptions;
   FSeqTerminate := true;
   LAbout := TfmAbout.Create(self);
   LAbout.ShowModal;
