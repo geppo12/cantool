@@ -230,6 +230,14 @@ object fmMain: TfmMain
         Height = 21
         TabOrder = 1
       end
+      object cbSqzLog20: TCheckBox
+        Left = 248
+        Top = 18
+        Width = 129
+        Height = 17
+        Caption = 'Tag Support (v 2.0)'
+        TabOrder = 3
+      end
     end
   end
   object cbFilterEnable: TCheckBox

@@ -203,7 +203,7 @@ type
     function findNode(ANodeId: Integer): TSqzLogHandler;
     procedure print(ANodeId: Integer; AClass: TSqzLogClass; ATitle: string);
     public
-    constructor Create(AProtoV2: Boolean = false);
+    constructor Create(AProtoV2: Boolean);
     destructor Destroy; override;
     procedure AddNode(ANodeId: Integer);
 {$IFDEF USE_PRINTER_OBJ}

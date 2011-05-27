@@ -69,6 +69,7 @@ type
     odSequence: TOpenDialog;
     lbSeqOutText: TListBox;
     btnMarkerEdit: TButton;
+    cbSqzLog20: TCheckBox;
     procedure btnSeqCancelClick(Sender: TObject);
     procedure btnFilterEditClick(Sender: TObject);
     procedure btnMarkerEditClick(Sender: TObject);
@@ -195,7 +196,7 @@ begin
   FSequenceEngine.OnOutText := seqPrint;
 
   // initialize log processor engine
-  FSqzLogProcessor := TSqzLogNetHandler.Create;
+  FSqzLogProcessor := TSqzLogNetHandler.Create(TNCTOptions.Instance.SqueezeLogV20);
   FSqzLogProcessor.OnPrint := print;
 
   FFileList := TFileNamesList.Create;
@@ -477,6 +478,7 @@ begin
   with TNCTOptions.Instance do begin
     SqueezeLogMask := StrToIntDef(eSqzLogMask.Text,SqueezeLogMask);
     SqueezeLogId   := StrToIntDef(eSqzLogID.Text,SqueezeLogId);
+    SqueezeLogV20  := cbSqzLog20.Checked;
     NodeMask := StrToIntDef(eNodeMask.Text,NodeMask);
     FSqzLogProcessor.NodeMask := NodeMask;
 end;
@@ -487,6 +489,7 @@ begin
   with TNCTOptions.Instance do begin
     eSqzLogMask.Text := Format('0x%.8X',[SqueezeLogMask]);
     eSqzLogID.Text   := Format('0x%.8X',[SqueezeLogId]);
+    cbSqzLog20.Checked := SqueezeLogV20;
     eNodeMask.Text   := Format('0x%.8X',[NodeMask]);
 end;
 end;

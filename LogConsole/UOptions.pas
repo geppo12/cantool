@@ -41,6 +41,7 @@ type
     public
     SqueezeLogId: Cardinal;
     SqueezeLogMask: Cardinal;
+    SqueezeLogV20: Boolean;
     NodeMask: Cardinal;
     class constructor CreateInstance;
     class destructor DestroyInstance;
@@ -69,12 +70,14 @@ const
   kIniOptions    = 'Options';
   // keys
   kIniSqzLogId   = 'SqueezeLogId';
+  kIniSqzLogV20  = 'SqueezeLogV20';
   kIniSqzLogMask = 'SqueezeLogMask';
   kIniNodeMask   = 'NodeMask';
 
 procedure TNCTOptions.loadDefaults;
 begin
   SqueezeLogId   := $FE0000;
+  SqueezeLogV20  := false;
   SqueezeLogMask := $FFC000;
   NodeMask       := $3FFF;
 end;
@@ -85,6 +88,7 @@ var
 begin
   LIniFile     := TIniFile.Create(AFile);
   SqueezeLogId := LIniFile.ReadInteger(kIniOptions,kIniSqzLogId,SqueezeLogId);
+  SqueezeLogV20 := LIniFile.ReadBool(kIniOptions,kIniSqzLogV20,SqueezeLogV20);
   SqueezeLogMask := LIniFile.ReadInteger(kIniOptions,kIniSqzLogMask,SqueezeLogMask);
   NodeMask     := LIniFile.ReadInteger(kIniOptions,kIniNodeMask,NodeMask);
   LIniFile.Free;
@@ -96,6 +100,7 @@ var
 begin
   LIniFile := TIniFile.Create(AFile);
   LIniFile.WriteInteger(kIniOptions,kIniSqzLogId,SqueezeLogId);
+  LIniFile.WriteBool(kIniOptions,kIniSqzLogV20,SqueezeLogV20);
   LIniFile.WriteInteger(kIniOptions,kIniSqzLogMask,SqueezeLogMask);
   LIniFile.WriteInteger(kIniOptions,kIniNodeMask,NodeMask);
   LIniFile.Free;
