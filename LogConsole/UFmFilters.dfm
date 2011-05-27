@@ -4,7 +4,7 @@ object fmFilter: TfmFilter
   BorderStyle = bsDialog
   Caption = 'Filter'
   ClientHeight = 295
-  ClientWidth = 428
+  ClientWidth = 452
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -19,14 +19,19 @@ object fmFilter: TfmFilter
   object sgFilter: TStringGrid
     Left = 8
     Top = 8
-    Width = 410
+    Width = 436
     Height = 241
-    ColCount = 3
+    ColCount = 4
     DefaultColWidth = 134
     FixedCols = 0
     RowCount = 9
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goTabs]
     TabOrder = 0
+    ColWidths = (
+      134
+      28
+      131
+      134)
   end
   object btnOK: TButton
     Left = 343

@@ -33,6 +33,7 @@ uses
 
 resourcestring
   kMaskStr   = 'Mask ID';
+  kMaskExtStr = 'XTD';
   kValueLow  = 'Value Low';
   kValueHigh = 'Value High';
 
@@ -56,6 +57,8 @@ var
 
 implementation
 
+uses
+  StrUtils;
 {$R *.dfm}
 
 function TfmFilter.parseRow(var AFilter: TCanMsgFilter; ARow: TStrings): Boolean;
@@ -66,18 +69,22 @@ begin
       AFilter.MaskId := $FFFFFFFF
     else
       AFilter.MaskId    := Cardinal(StrToInt(ARow.Strings[0]));
-    AFilter.ValueLow  := Cardinal(StrToInt(ARow.Strings[1]));
 
-    if ARow.Strings[2] = '' then
+    AFilter.Ext := (LowerCase(LeftStr(ARow.Strings[1],1)) = 'x');
+
+    AFilter.ValueLow := Cardinal(StrToInt(ARow.Strings[2]));
+
+    if ARow.Strings[3] = '' then
       AFilter.ValueHigh := AFilter.ValueLow
     else
-      AFilter.ValueHigh := Cardinal(StrToInt(ARow.Strings[2]));
+      AFilter.ValueHigh := Cardinal(StrToInt(ARow.Strings[3]));
     Result := true;
   except
     on EConvertError do begin
       ARow.Strings[0] := '0';
-      ARow.Strings[1] := '0';
+      ARow.Strings[1] := '';
       ARow.Strings[2] := '0';
+      ARow.Strings[3] := '0';
     end;
   end;
 end;
@@ -86,6 +93,7 @@ procedure TfmFilter.FormCreate(Sender: TObject);
 begin
   with sgFilter.Rows[0] do begin
     Add(kMaskStr);
+    Add(kMaskExtStr);
     Add(kValueLow);
     Add(kValueHigh);
   end;
@@ -102,6 +110,7 @@ begin
   for LFilter in AList do begin
     LRow := sgFilter.Rows[I];
     LRow.Add(Format('0x%.8X',[LFilter.MaskId]));
+    LRow.Add(IfThen(LFilter.Ext,'XTD',''));
     LRow.Add(Format('0x%.8X',[LFilter.ValueLow]));
     LRow.Add(Format('0x%.8X',[LFilter.ValueHigh]));
     Inc(I);

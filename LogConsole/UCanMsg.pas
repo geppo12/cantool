@@ -59,6 +59,7 @@ type
   TCanMsgFilter = record
     public
     MaskId: Cardinal;
+    Ext: Boolean;       // extended ID
     ValueLow: Cardinal;
     ValueHigh: Cardinal;
     function Match(AMsg: TCanMsg): Boolean;
@@ -174,7 +175,7 @@ var
   LMaskedId: Cardinal;
 begin
   LMaskedId := AMsg.ecmID and MaskId;
-  Result := ((LMaskedId >= ValueLow) and (LMaskedId <= ValueHigh));
+  Result := ((LMaskedId >= ValueLow) and (LMaskedId <= ValueHigh) and (AMsg.ecmExt = Ext));
 end;
 {$ENDREGION}
 
@@ -258,7 +259,7 @@ begin
   LMin := 0;
   LMax := FMapList.Count - 1;
 
-  // make veri fast binary search
+  // very fast binary search
   repeat
     LMid := (LMin + LMax) div 2;
     if AIndex > FMapList.Items[LMid] then
@@ -270,6 +271,7 @@ begin
   Result := LMid;
 end;
 {$ENDREGION}
+
 
 {$REGION ''}
 procedure TMarkerList.Assign(AMarkers: TMarkerList);

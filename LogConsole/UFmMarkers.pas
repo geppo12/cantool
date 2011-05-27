@@ -47,6 +47,7 @@ type
     btnOK: TButton;
     Label5: TLabel;
     cbColor: TComboBox;
+    cbExt: TCheckBox;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnAddClick(Sender: TObject);
@@ -82,6 +83,7 @@ begin
   try
     AMarker.Name := eName.Text;
     AMarker.Filter.MaskId := StrToInt(eMask.Text);
+    AMarker.Filter.Ext := cbExt.Checked;
     AMarker.Filter.ValueHigh := StrToInt(eHigh.Text);
 
     if eLow.Text <> '' then
@@ -204,6 +206,7 @@ begin
     LMarker := FMarkers.Items[lbMarkers.ItemIndex];
     eName.Text := LMarker.Name;
     eMask.Text := Format('0x%.8X',[LMarker.Filter.MaskId]);
+    cbExt.Checked := LMarker.Filter.Ext;
     eHigh.Text := Format('0x%.8X',[LMarker.Filter.ValueHigh]);
     eLow.Text  := Format('0x%.8X',[LMarker.Filter.ValueLow]);
     for I := 0 to cbColor.Items.Count - 1  do

@@ -74,7 +74,7 @@ object fmMarkerEdit: TfmMarkerEdit
   object eMask: TEdit
     Left = 175
     Top = 73
-    Width = 243
+    Width = 186
     Height = 21
     TabOrder = 2
   end
@@ -129,5 +129,13 @@ object fmMarkerEdit: TfmMarkerEdit
     ParentDoubleBuffered = False
     TabOrder = 8
     OnDrawItem = cbColorDrawItem
+  end
+  object cbExt: TCheckBox
+    Left = 376
+    Top = 75
+    Width = 42
+    Height = 17
+    Caption = 'XTD'
+    TabOrder = 9
   end
 end
