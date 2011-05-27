@@ -825,8 +825,7 @@ begin
 				case FTempPar.spType of
 					lpString: begin
               if AData[i] = 0 then begin
-                // TODO 2 -cCHECK : verificare cast
-                FTempPar.spDataString := string(FStringBuffer[FParIdx]);
+                FTempPar.spDataString := FStringBuffer[FParIdx];
                 complete := true;
                 TDbgLogger.Instance.LogDebug('SQZLOG: ParDump type <%s>',[FTempPar.spDataString]);
               end else begin

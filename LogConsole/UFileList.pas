@@ -128,7 +128,6 @@ var
   LFindData: TWin32FindData;
   LNext: Boolean;
   LOldDir: string;
-//  LName: string; #OC
 begin
   if DirectoryExists(FDirectory) then begin
     if FDirectory <> '' then begin

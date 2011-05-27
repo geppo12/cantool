@@ -119,7 +119,6 @@ type
     FSeqEngine: TSequenceEngine;
 
     procedure parseScript;
-    //procedure parseSymbol(AStr: string); #OC
     procedure addSymbol(AName, AValue: string);
     function replaceSymbol(AStr: string): string;
     // nextPos e la prima posizione dopo la keyword
@@ -810,7 +809,6 @@ begin
   Result := FMsgObj.Match(AMsg);
 end;
 
-// TODO 2 -cFIXME : inserire log print nei metodi ?
 procedure TSeqEl.Timeout; 
 begin
 end;

@@ -99,7 +99,6 @@ begin
   end;
 end;
 
-// TODO 2 -cFIXME : include decimal rapresentation
 procedure TfmFilter.ShowFilterList(AList: TCanMsgFilterList);
 var
   I: Integer;
