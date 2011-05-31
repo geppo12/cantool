@@ -278,8 +278,12 @@ begin
   if FActive then
     raise ENICanException.Create('Cannot change speed: device active');
 
-  if (FBaudRate <> ABaudRate) and (baudrateD2NI(ABaudRate) <> 0) then
-    FBaudRate := ABaudRate;
+  if (FBaudRate <> ABaudRate) then begin
+    if (baudrateD2NI(ABaudRate) <> 0) then
+      FBaudRate := ABaudRate
+    else
+      raise ENICanException.Create('Cannot change speed: wrong speed');
+  end;
 end;
 
 constructor TNICanLink.Create;

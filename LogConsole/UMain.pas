@@ -42,9 +42,7 @@ uses
 
 type
   TfmMain = class(TForm)
-    eName: TEdit;
     cbOpen: TCheckBox;
-    Label1: TLabel;
     Timer1: TTimer;
     pgControl: TPageControl;
     Debug: TTabSheet;
@@ -70,6 +68,10 @@ type
     lbSeqOutText: TListBox;
     btnMarkerEdit: TButton;
     cbSqzLog20: TCheckBox;
+    eName: TEdit;
+    Label5: TLabel;
+    Label1: TLabel;
+    cbSpeed: TComboBox;
     procedure btnSeqCancelClick(Sender: TObject);
     procedure btnFilterEditClick(Sender: TObject);
     procedure btnMarkerEditClick(Sender: TObject);
@@ -77,6 +79,7 @@ type
     procedure btnSeqLoadClick(Sender: TObject);
     procedure cbFilterEnableClick(Sender: TObject);
     procedure cbOpenClick(Sender: TObject);
+    procedure cbSpeedChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -157,7 +160,9 @@ end;
 {$REGION 'FormEvents'}
 procedure TfmMain.cbOpenClick(Sender: TObject);
 begin
-  if cbOpen.Checked then begin
+  if eName.Text = '' then
+    cbOpen.Checked := false
+  else if cbOpen.Checked then begin
     try
       FLink.Name := eName.Text;
       FLink.Open;
@@ -188,6 +193,7 @@ begin
   FLogger.Enable := true;
 
   FLink := TNICanLink.Create;
+  cbSpeed.ItemIndex := Ord(Flink.BaudRate);
   FLogger.LogMessage('Link inizialized');
 
   // initialize sequence engine
@@ -217,7 +223,9 @@ begin
 
   FSqzLogProcessor.NodeMask := TNCTOptions.Instance.NodeMask;
   showOptions;
-  showFilterControls(pgControl.TabIndex = Ord(pgCanLog));
+  FLastPage := Ord(pgCanLog);
+  pgControl.TabIndex := FLastPage;
+  showFilterControls(true);
 end;
 
 procedure TfmMain.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -473,6 +481,11 @@ begin
   end;
 end;
 
+procedure TfmMain.cbSpeedChange(Sender: TObject);
+begin
+  FLink.Baudrate := TNICanBaudrate(cbSpeed.ItemIndex);
+end;
+
 procedure TfmMain.setupOptions;
 begin
   with TNCTOptions.Instance do begin
@@ -531,6 +544,7 @@ procedure TfmMain.changeLinkStatus(AActive: Boolean);
 begin
   btnSeqGo.Enabled := AActive;
   btnSeqCancel.Enabled := AActive;
+  pgControl.TabIndex := FLastPage;
 end;
 
 {$ENDREGION}

@@ -20,30 +20,14 @@ object fmMain: TfmMain
     467)
   PixelsPerInch = 96
   TextHeight = 13
-  object Label1: TLabel
-    Left = 16
-    Top = 442
-    Width = 32
-    Height = 13
-    Anchors = [akLeft, akBottom]
-    Caption = 'Device'
-  end
-  object eName: TEdit
-    Left = 64
-    Top = 438
-    Width = 81
-    Height = 21
-    Anchors = [akLeft, akBottom]
-    TabOrder = 0
-  end
   object cbOpen: TCheckBox
-    Left = 167
-    Top = 440
+    Left = 8
+    Top = 442
     Width = 58
     Height = 17
     Anchors = [akLeft, akBottom]
-    Caption = 'Open'
-    TabOrder = 1
+    Caption = 'Connect'
+    TabOrder = 0
     OnClick = cbOpenClick
   end
   object pgControl: TPageControl
@@ -51,17 +35,13 @@ object fmMain: TfmMain
     Top = 8
     Width = 758
     Height = 424
-    ActivePage = CanLog
+    ActivePage = Options
     Anchors = [akLeft, akTop, akRight, akBottom]
-    TabOrder = 2
+    TabOrder = 1
     OnChange = pgControlChange
     OnResize = pgControlResize
     object Debug: TTabSheet
       Caption = 'Debug'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object lbLogEntry: TListBox
         Left = 0
         Top = 0
@@ -75,10 +55,6 @@ object fmMain: TfmMain
     object CanLog: TTabSheet
       Caption = 'CanLog'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object sgRawLog: TStringGrid
         Left = 0
         Top = 0
@@ -116,10 +92,6 @@ object fmMain: TfmMain
     object TabSheet1: TTabSheet
       Caption = 'Sequences'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         750
         396)
@@ -184,10 +156,6 @@ object fmMain: TfmMain
     object Options: TTabSheet
       Caption = 'Options'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label2: TLabel
         Left = 5
         Top = 19
@@ -196,18 +164,32 @@ object fmMain: TfmMain
         Caption = 'Squeeze Log ID'
       end
       object Label3: TLabel
-        Left = 5
-        Top = 107
+        Left = 3
+        Top = 103
         Width = 52
         Height = 13
         Caption = 'Node Mask'
       end
       object Label4: TLabel
-        Left = 5
-        Top = 63
+        Left = 3
+        Top = 61
         Width = 88
         Height = 13
         Caption = 'Squeeze Log Mask'
+      end
+      object Label5: TLabel
+        Left = 3
+        Top = 145
+        Width = 54
+        Height = 13
+        Caption = 'Can Device'
+      end
+      object Label1: TLabel
+        Left = 3
+        Top = 187
+        Width = 52
+        Height = 13
+        Caption = 'Can Speed'
       end
       object eSqzLogID: TEdit
         Left = 108
@@ -218,14 +200,14 @@ object fmMain: TfmMain
       end
       object eNodeMask: TEdit
         Left = 108
-        Top = 104
+        Top = 100
         Width = 121
         Height = 21
         TabOrder = 2
       end
       object eSqzLogMask: TEdit
         Left = 108
-        Top = 60
+        Top = 58
         Width = 121
         Height = 21
         TabOrder = 1
@@ -238,6 +220,28 @@ object fmMain: TfmMain
         Caption = 'Tag Support (v 2.0)'
         TabOrder = 3
       end
+      object eName: TEdit
+        Left = 108
+        Top = 142
+        Width = 121
+        Height = 21
+        TabOrder = 4
+      end
+      object cbSpeed: TComboBox
+        Left = 108
+        Top = 184
+        Width = 121
+        Height = 21
+        TabOrder = 5
+        OnChange = cbSpeedChange
+        Items.Strings = (
+          '10 KBaud'
+          '100 KBaud'
+          '125 KBaud'
+          '250 KBaud'
+          '500 KBaud'
+          '1000 KBaud')
+      end
     end
   end
   object cbFilterEnable: TCheckBox
@@ -247,7 +251,7 @@ object fmMain: TfmMain
     Height = 17
     Anchors = [akRight, akBottom]
     Caption = 'Filter Enable'
-    TabOrder = 3
+    TabOrder = 2
     OnClick = cbFilterEnableClick
   end
   object btnFilterEdit: TButton
@@ -257,7 +261,7 @@ object fmMain: TfmMain
     Height = 25
     Anchors = [akRight, akBottom]
     Caption = 'Filter Edit'
-    TabOrder = 4
+    TabOrder = 3
     OnClick = btnFilterEditClick
   end
   object btnMarkerEdit: TButton
@@ -266,17 +270,17 @@ object fmMain: TfmMain
     Width = 75
     Height = 25
     Caption = 'Marker Edit'
-    TabOrder = 5
+    TabOrder = 4
     OnClick = btnMarkerEditClick
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer
-    Left = 24
+    Left = 392
     Top = 432
   end
   object odSequence: TOpenDialog
     Filter = 'Sequence Files (*.seq)|*.seq'
-    Left = 56
+    Left = 440
     Top = 432
   end
 end
