@@ -52,6 +52,7 @@ interface
 
 uses
   SysUtils,
+  Math,
   UCanMsg,
   UNIAPI,
   UDbgLogger;
@@ -376,9 +377,12 @@ end;
 function TNICanLink.Write(AMsg: TCanMsg): Boolean;
 var
   LNICanFrame: NCTYPE_CAN_FRAME;
+  LId: Cardinal;
 begin
   Result := true;
-  LNICanFrame.ArbitrationId := AMsg.ecmID;
+  // TODO 2 -cFIXME: if id > 11 bit format set ecmExt automatically ?
+  LId := (AMsg.ecmID and $1FFFFFFF) or Math.IfThen(AMsg.ecmExt,$20000000,0);
+  LNICanFrame.ArbitrationId := LId;
   LNICanFrame.IsRemote      := 0;
   LNICanFrame.DataLength    := AMsg.ecmLen;
 

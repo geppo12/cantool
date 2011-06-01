@@ -199,6 +199,7 @@ type
     stsAddMsg
   );
 
+  // DONE 1 -cFIXME : support XTD flags
   TSeqCanMsgObj = class
     strict private
     class var FAuxStringList: TStringList;
@@ -532,13 +533,32 @@ begin
 
   FAuxStringList.DelimitedText := AStr;
   try
+    FCanMsg.ecmExt := false;
+    FMaskMsg.ecmExt := false;
+
+    // check for extended format
     value := FAuxStringList.Values['ID'];
+    if value = '' then begin
+      value := FAuxStringList.Values['IDX'];
+      if value <> '' then
+        // ok we have an extended ID, we set flag
+        FCanMsg.ecmExt := true;
+    end;
+
     if value <> '' then
       FCanMsg.ecmId := StrToInt(value)
     else
       raise EConvertError.Create('MSG: convert ID error');
 
+    // check for extended format
     value := FAuxStringList.Values['MASK-ID'];
+    if value = '' then begin
+      value := FAuxStringList.Values['MASK-IDX'];
+      if value <> '' then
+        // ok we have an extended ID, we set flag
+        FMaskMsg.ecmExt := true;
+    end;
+
     if value <> '' then
       FMaskMsg.ecmId := StrToInt(value);
 
