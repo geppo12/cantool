@@ -164,7 +164,8 @@ begin
     cbOpen.Checked := false
   else if cbOpen.Checked then begin
     try
-      FLink.Name := eName.Text;
+      FLink.Name := TNCTOptions.Instance.CanDevice;
+      FLink.BaudRate := TNCTOptions.Instance.CanSpeed;
       FLink.Open;
       changeLinkStatus(true);
     except
@@ -193,7 +194,8 @@ begin
   FLogger.Enable := true;
 
   FLink := TNICanLink.Create;
-  cbSpeed.ItemIndex := Ord(Flink.BaudRate);
+  FLink.Name     := TNCTOptions.Instance.CanDevice;
+  FLink.BaudRate := TNCTOptions.Instance.CanSpeed;
   FLogger.LogMessage('Link inizialized');
 
   // initialize sequence engine
@@ -483,7 +485,7 @@ end;
 
 procedure TfmMain.cbSpeedChange(Sender: TObject);
 begin
-  FLink.Baudrate := TNICanBaudrate(cbSpeed.ItemIndex);
+  TNCTOptions.Instance.CanSpeed := TNICanBaudrate(cbSpeed.ItemIndex);
 end;
 
 procedure TfmMain.setupOptions;
@@ -494,7 +496,9 @@ begin
     SqueezeLogV20  := cbSqzLog20.Checked;
     NodeMask := StrToIntDef(eNodeMask.Text,NodeMask);
     FSqzLogProcessor.NodeMask := NodeMask;
-end;
+    CanDevice      := eName.Text;
+    CanSpeed       := TNICanBaudrate(cbSpeed.ItemIndex);
+  end;
 end;
 
 procedure TfmMain.showOptions;
@@ -504,7 +508,10 @@ begin
     eSqzLogID.Text   := Format('0x%.8X',[SqueezeLogId]);
     cbSqzLog20.Checked := SqueezeLogV20;
     eNodeMask.Text   := Format('0x%.8X',[NodeMask]);
-end;
+    // can info
+    eName.Text       := CanDevice;
+    cbSpeed.ItemIndex := Ord(CanSpeed);
+  end;
 end;
 
 procedure TfmMain.showFilterControls(AOnOff: Boolean);

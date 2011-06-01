@@ -90,6 +90,7 @@ type
   end;
 
   TNICanBaudrate = (
+    canBaudInvalid = -1,
     canBaud10K,
     canBaud100K,
     canBaud125K,

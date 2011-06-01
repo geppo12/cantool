@@ -26,6 +26,9 @@ unit UOptions;
 
 interface
 
+uses
+  UNICanLink;
+
 type
   TNCTOptions = class
     private
@@ -37,12 +40,17 @@ type
     procedure loadDefaults;
     procedure loadFromFile(AFile: string);
     procedure saveToFile(AFile: string);
+    function canSpeedToIniFormat(ASpeedInternal: TNICanBaudrate): Integer;
+    function canSpeedFromIniFormat(ASpeed: Integer): TNICanBaudrate;
 
     public
     SqueezeLogId: Cardinal;
     SqueezeLogMask: Cardinal;
     SqueezeLogV20: Boolean;
     NodeMask: Cardinal;
+    CanDevice: string;
+    // TODO 2 -cFIXME : CanSpeed have to be and integer
+    CanSpeed: TNICanBaudrate;
     class constructor CreateInstance;
     class destructor DestroyInstance;
     constructor Create;
@@ -73,6 +81,8 @@ const
   kIniSqzLogV20  = 'SqueezeLogV20';
   kIniSqzLogMask = 'SqueezeLogMask';
   kIniNodeMask   = 'NodeMask';
+  kIniCanDevice  = 'CanDevice';
+  kIniCanSpeed   = 'CanSpeed';
 
 procedure TNCTOptions.loadDefaults;
 begin
@@ -80,17 +90,27 @@ begin
   SqueezeLogV20  := false;
   SqueezeLogMask := $FFC000;
   NodeMask       := $3FFF;
+  CanDevice      := 'CAN0';
+  CanSpeed       := canBaud100K;
 end;
 
 procedure TNCTOptions.loadFromFile(AFile: string);
 var
   LIniFile: TIniFile;
+  LIniCanValue: Integer;
+  LCanSpeed: TNICanBaudrate;
 begin
   LIniFile     := TIniFile.Create(AFile);
   SqueezeLogId := LIniFile.ReadInteger(kIniOptions,kIniSqzLogId,SqueezeLogId);
   SqueezeLogV20 := LIniFile.ReadBool(kIniOptions,kIniSqzLogV20,SqueezeLogV20);
   SqueezeLogMask := LIniFile.ReadInteger(kIniOptions,kIniSqzLogMask,SqueezeLogMask);
   NodeMask     := LIniFile.ReadInteger(kIniOptions,kIniNodeMask,NodeMask);
+  CanDevice    := LIniFile.ReadString(kIniOptions,kIniCanDevice,CanDevice);
+  LIniCanValue := canSpeedToIniFormat(CanSpeed);
+  LIniCanValue := LIniFile.ReadInteger(kIniOptions,kIniCanSpeed,LIniCanValue);
+  LCanSpeed     := canSpeedFromIniFormat(LIniCanValue);
+  if LCanSpeed <> canBaudInvalid then
+    CanSpeed := LCanSpeed;
   LIniFile.Free;
 end;
 
@@ -103,7 +123,35 @@ begin
   LIniFile.WriteBool(kIniOptions,kIniSqzLogV20,SqueezeLogV20);
   LIniFile.WriteInteger(kIniOptions,kIniSqzLogMask,SqueezeLogMask);
   LIniFile.WriteInteger(kIniOptions,kIniNodeMask,NodeMask);
+  LIniFile.WriteString(kIniOptions,kIniCanDevice,CanDevice);
+  LIniFile.WriteInteger(kIniOptions,kIniCanSpeed,canSpeedToIniFormat(CanSpeed));
   LIniFile.Free;
+end;
+
+function  TNCTOptions.canSpeedToIniFormat(ASpeedInternal: TNICanBaudrate): Integer;
+begin
+  case ASpeedInternal of
+    canBaud10K:  Result := 10000;
+    canBaud100K: Result := 100000;
+    canBaud125K: Result := 125000;
+    canBaud250K: Result := 250000;
+    canBaud500K: Result := 500000;
+    canBaud1000K: Result := 1000000;
+  end;
+end;
+
+function  TNCTOptions.canSpeedFromIniFormat(ASpeed: Integer): TNICanBaudrate;
+begin
+  case ASpeed of
+    10000: Result := canBaud10K;
+    100000: Result := canBaud100K;
+    125000: Result := canBaud125K;
+    250000: Result := canBaud250K;
+    500000: Result := canBaud500K;
+    1000000: Result := canBaud1000K;
+    else
+      Result := canBaudInvalid;
+  end;
 end;
 
 class constructor TNCTOptions.CreateInstance;
