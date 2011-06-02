@@ -23,6 +23,7 @@
     h3 { text-align: center; color: #587f97; }
     a { color: #587f97; }
     .description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
+	.warning { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: normal; font-weight: bold }
     .download { float: right; }
     pre { background: #000; color: #fff; padding: 15px;}
     hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
@@ -61,9 +62,11 @@
       <span class="small">by <a href="http://github.com/geppo12">geppo12</a></span></h1>
 
     <div class="description">
-      Tool to log CAN messages and debug embedded card throught a CAN network
+      Tool to log CAN messages and debug embedded card throught a CAN network. 
     </div>
 	<img src="resources/main1.png">
+	<div class="warning">WARN: for use this tool you need a National Instruments CAN inteface with NI-CAN software installed. NI-XNET is not supported</div>
+	
 
     <h2>License</h2>
 <p>GPL 2.0</p>
