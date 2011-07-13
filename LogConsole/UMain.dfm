@@ -42,10 +42,6 @@ object fmMain: TfmMain
     OnResize = pgControlResize
     object Debug: TTabSheet
       Caption = 'Debug'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object lbLogEntry: TListBox
         Left = 0
         Top = 0
@@ -59,10 +55,6 @@ object fmMain: TfmMain
     object CanLog: TTabSheet
       Caption = 'CanLog'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object sgRawLog: TStringGrid
         Left = 0
         Top = 0
@@ -100,10 +92,6 @@ object fmMain: TfmMain
     object TabSheet1: TTabSheet
       Caption = 'Sequences'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         750
         396)
@@ -146,7 +134,7 @@ object fmMain: TfmMain
       end
       object btnSeqCancel: TButton
         Left = 625
-        Top = 368
+        Top = 370
         Width = 75
         Height = 25
         Anchors = [akRight, akBottom]
@@ -168,10 +156,6 @@ object fmMain: TfmMain
     object Options: TTabSheet
       Caption = 'Options'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label2: TLabel
         Left = 5
         Top = 19
@@ -289,14 +273,23 @@ object fmMain: TfmMain
     TabOrder = 4
     OnClick = btnMarkerEditClick
   end
+  object btnClear: TButton
+    Left = 72
+    Top = 438
+    Width = 75
+    Height = 25
+    Caption = 'Clear'
+    TabOrder = 5
+    OnClick = btnClearClick
+  end
   object Timer1: TTimer
     OnTimer = Timer1Timer
-    Left = 392
+    Left = 424
     Top = 432
   end
   object odSequence: TOpenDialog
     Filter = 'Sequence Files (*.seq)|*.seq'
-    Left = 440
+    Left = 464
     Top = 432
   end
 end

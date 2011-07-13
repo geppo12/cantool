@@ -82,6 +82,7 @@ type
     public
     constructor Create;
     destructor Destroy; override;
+    procedure ClearMsg;
     procedure Add(ACanMsg: TCanMsg);
     //* Convert index from fitered domanin to unfiltered domain and viceversa
     function ConvertIndex(AIndex: Integer): Integer;
@@ -238,6 +239,12 @@ begin
   inherited;
 end;
 
+procedure TCanMsgList.ClearMsg;
+begin
+  FMapList.Clear;
+  FMsgList.Clear;
+end;
+
 procedure TCanMsgList.Add(ACanMsg: TCanMsg);
 var
   LRawIndex: Integer;
@@ -273,7 +280,7 @@ end;
 {$ENDREGION}
 
 
-{$REGION ''}
+{$REGION 'TMarkerList'}
 procedure TMarkerList.Assign(AMarkers: TMarkerList);
 var
   LMarker: TCanMarker;

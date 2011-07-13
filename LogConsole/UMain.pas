@@ -28,7 +28,7 @@ unit UMain;
 interface
 
 // read 1M message for void :-)
-{.$DEFINE STRESS_TEST}
+{$UNDEF STRESS_TEST}
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
@@ -72,6 +72,8 @@ type
     Label5: TLabel;
     Label1: TLabel;
     cbSpeed: TComboBox;
+    btnClear: TButton;
+    procedure btnClearClick(Sender: TObject);
     procedure btnSeqCancelClick(Sender: TObject);
     procedure btnFilterEditClick(Sender: TObject);
     procedure btnMarkerEditClick(Sender: TObject);
@@ -139,6 +141,7 @@ implementation
 uses
   StrUtils,
   UAbout,
+  UUtils,
   UOptions,
   UFmFilters,
   UFmMarkers,
@@ -243,8 +246,10 @@ end;
 procedure TfmMain.pgControlChange(Sender: TObject);
 var
   LCanOpen: Boolean;
+  LBtnClear: Boolean;
 begin
   LCanOpen := True;
+  LBtnClear := True;
   case TAppPages(pgControl.TabIndex) of
     pgDebug: showFilterControls(false);
     pgCanLog: begin
@@ -258,6 +263,7 @@ begin
 
     pgOptions: begin
         showFilterControls(false);
+        LBtnClear := false;
         if FLink.Active then begin
           // Override: cannot select this page
           pgControl.TabIndex := FLastPage;
@@ -267,6 +273,8 @@ begin
       end;
   end;
   cbOpen.Enabled := LCanOpen;
+  // TODO -cFIXME 1 : gestire meglio visualizzazione dei controlli
+  btnClear.Visible := LBtnClear;
 
   // save option on exit of setup page
   if FLastPage = Ord(pgOptions) then
@@ -439,6 +447,18 @@ end;
 procedure TfmMain.btnSeqCancelClick(Sender: TObject);
 begin
   FSeqTerminate := true;
+end;
+
+procedure TfmMain.btnClearClick(Sender: TObject);
+begin
+  case TAppPages(pgControl.TabIndex) of
+    pgCanLog: begin
+        FCanMsgList.ClearMsg;
+        sgRawLog.Invalidate;
+      end;
+    else
+      UUtils.ShowMessage('Not implemented');
+  end;
 end;
 
 {$ENDREGION}
