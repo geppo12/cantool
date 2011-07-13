@@ -156,6 +156,7 @@ begin
   Inc(GetTestMsgCount);
   AMsg.ecmID := GetTestMsgCount;
   AMsg.ecmLen := 8;
+  AMsg.ecmExt := True;
   Result := (GetTestMsgCount < 1000000);
 end;
 {$ENDIF}
@@ -223,6 +224,11 @@ begin
   FLogger.LogMessage('Msgsets loaded');
 
   Caption := Caption + VersionInformation;
+
+{$IFDEF STRESS_TEST}
+  Caption := Caption + ' <Stress Test Variant>';
+{$ENDIF}
+
   setupLogRowCount;
   updateRowSize;
 
