@@ -39,7 +39,8 @@ uses
   USequences in 'USequences.pas',
   USplitterStr in 'USplitterStr.pas',
   UOptions in 'UOptions.pas',
-  UFmMarkers in 'UFmMarkers.pas' {fmMarkerEdit};
+  UFmMarkers in 'UFmMarkers.pas' {fmMarkerEdit},
+  UUtils in 'UUtils.pas';
 
 {$R *.res}
 

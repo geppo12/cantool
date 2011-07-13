@@ -36,8 +36,8 @@ type
     lbMarkers: TListBox;
     eName: TEdit;
     eMask: TEdit;
-    eHigh: TEdit;
     eLow: TEdit;
+    eHigh: TEdit;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
@@ -73,6 +73,7 @@ var
 implementation
 
 uses
+  UUtils,
   UDbgLogger;
 
 {$R *.dfm}
@@ -91,12 +92,17 @@ begin
     else
       AMarker.Filter.ValueLow := AMarker.Filter.ValueHigh;
 
+    if AMarker.Filter.ValueLow > AMarker.Filter.ValueHigh then
+      raise EConvertError.Create('Invalid range');
+
+
     if cbColor.ItemIndex >= 0 then
       AMarker.Color := TColor(cbColor.Items.Objects[cbColor.ItemIndex])
     else
       raise EConvertError.Create('No color selected');
   except
     on E: EConvertError do begin
+      ShowErrorMessage(E.Message);
       TDbgLogger.Instance.LogException(E.Message);
       Result := false;
     end;

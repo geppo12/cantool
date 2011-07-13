@@ -37,16 +37,16 @@ object fmMarkerEdit: TfmMarkerEdit
   object Label3: TLabel
     Left = 175
     Top = 100
-    Width = 21
+    Width = 19
     Height = 13
-    Caption = 'High'
+    Caption = 'Low'
   end
   object Label4: TLabel
     Left = 175
     Top = 146
-    Width = 19
+    Width = 21
     Height = 13
-    Caption = 'Low'
+    Caption = 'High'
   end
   object Label5: TLabel
     Left = 175
@@ -78,19 +78,19 @@ object fmMarkerEdit: TfmMarkerEdit
     Height = 21
     TabOrder = 2
   end
-  object eHigh: TEdit
+  object eLow: TEdit
     Left = 175
     Top = 119
     Width = 243
     Height = 21
-    TabOrder = 3
+    TabOrder = 4
   end
-  object eLow: TEdit
+  object eHigh: TEdit
     Left = 175
     Top = 165
     Width = 243
     Height = 21
-    TabOrder = 4
+    TabOrder = 5
   end
   object btnAdd: TButton
     Left = 259
@@ -98,7 +98,7 @@ object fmMarkerEdit: TfmMarkerEdit
     Width = 75
     Height = 25
     Caption = 'Add'
-    TabOrder = 5
+    TabOrder = 7
     OnClick = btnAddClick
   end
   object btnDel: TButton
@@ -107,7 +107,7 @@ object fmMarkerEdit: TfmMarkerEdit
     Width = 75
     Height = 25
     Caption = 'Del'
-    TabOrder = 6
+    TabOrder = 9
     OnClick = btnDelClick
   end
   object btnOK: TButton
@@ -117,7 +117,7 @@ object fmMarkerEdit: TfmMarkerEdit
     Height = 25
     Caption = 'OK'
     ModalResult = 1
-    TabOrder = 7
+    TabOrder = 8
   end
   object cbColor: TComboBox
     Left = 175
@@ -127,7 +127,7 @@ object fmMarkerEdit: TfmMarkerEdit
     Style = csOwnerDrawVariable
     DoubleBuffered = True
     ParentDoubleBuffered = False
-    TabOrder = 8
+    TabOrder = 6
     OnDrawItem = cbColorDrawItem
   end
   object cbExt: TCheckBox
@@ -136,6 +136,6 @@ object fmMarkerEdit: TfmMarkerEdit
     Width = 42
     Height = 17
     Caption = 'XTD'
-    TabOrder = 9
+    TabOrder = 3
   end
 end
