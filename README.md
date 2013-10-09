@@ -17,3 +17,5 @@ Why Delphi and not C++ ?
 2. Create a NI-CAN driver in Delphi for people that need this. Warning: at moment I support only Frame API
 
 For any question you can contact me: info@ing-monteleone.com
+
+[![Flattr Button](http://api.flattr.com/button/button-static-50x60.png "Flattr This!")](https://flattr.com/thing/790553/geppo12cantool-on-GitHub "Cantool")
